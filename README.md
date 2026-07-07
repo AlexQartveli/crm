@@ -1,6 +1,6 @@
-# BitrixCRM — CRM + Склад
+# Kinetix — CRM + Склад
 
-Система управления клиентами и складом по принципу **Битрикс24**. Включает CRM-модули (лиды, сделки, контакты, компании) и складской учёт (товары, остатки, движения).
+Система управления клиентами и складом. Включает CRM-модули (лиды, сделки, контакты, компании) и складской учёт (товары, остатки, движения).
 
 ## Возможности
 
@@ -43,16 +43,16 @@
 ### Шаг 3. Подключите backend на Render (один раз)
 
 1. Зайдите на [render.com](https://render.com) → войдите через GitHub
-2. **New → Blueprint** → выберите репозиторий `AlexQartveli/bitrix-crm`
+2. **New → Blueprint** → выберите репозиторий `AlexQartveli/-`
 3. Render подхватит `render.yaml` и задеплоит API
 
 ### Готово — открывайте с телефона
 
 | Что | Адрес |
 |-----|-------|
-| **CRM (интерфейс)** | https://alexqartveli.github.io/bitrix-crm/
-| **API** | https://bitrix-crm-api.onrender.com |
-| **Swagger** | https://bitrix-crm-api.onrender.com/docs |
+| **Kinetix (интерфейс)** | https://alexqartveli.github.io/-/ |
+| **API** | https://kinetix-api.onrender.com |
+| **Swagger** | https://kinetix-api.onrender.com/docs |
 
 > На бесплатном Render сервер «засыпает» после 15 мин бездействия. Первый запрос может занять ~30 сек.
 

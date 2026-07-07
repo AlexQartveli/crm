@@ -1,6 +1,8 @@
 node_modules/
 dist/
 *.db
+kinetix.db
+bitrix_crm.db
 __pycache__/
 *.pyc
 .env

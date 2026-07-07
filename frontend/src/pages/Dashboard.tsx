@@ -55,12 +55,12 @@ export default function Dashboard() {
         </div>
         <div className="card p-6">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-lg text-bitrix-600 bg-bitrix-50">
+            <div className="p-2 rounded-lg text-kinetix-600 bg-kinetix-50">
               <TrendingUp size={20} />
             </div>
             <h2 className="text-lg font-semibold">Воронка продаж</h2>
           </div>
-          <div className="text-3xl font-bold text-bitrix-600">{formatMoney(data.pipeline_amount)}</div>
+          <div className="text-3xl font-bold text-kinetix-600">{formatMoney(data.pipeline_amount)}</div>
         </div>
       </div>
 

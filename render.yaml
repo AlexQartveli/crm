@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: bitrix-crm-api
+    name: kinetix-api
     runtime: python
     plan: free
     rootDir: backend

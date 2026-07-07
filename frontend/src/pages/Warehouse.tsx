@@ -34,7 +34,7 @@ export default function WarehousePage() {
             <div className="flex items-center gap-2 mb-2">
               <h3 className="font-semibold">{w.name}</h3>
               {w.is_default && (
-                <span className="text-xs bg-bitrix-100 text-bitrix-700 px-2 py-0.5 rounded-full">Основной</span>
+                <span className="text-xs bg-kinetix-100 text-kinetix-700 px-2 py-0.5 rounded-full">Основной</span>
               )}
             </div>
             {w.address && <div className="text-sm text-gray-500">{w.address}</div>}

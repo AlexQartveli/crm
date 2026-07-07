@@ -1,53 +1,40 @@
-# Как открыть CRM с телефона
+# Как открыть Kinetix с телефона
 
-## Почему был 404
-
-Вы открыли **https://alexqartveli.github.io/** — это другой сайт (репозиторий `alexqartveli.github.io`).
-
-CRM лежит в репозитории **`-`** и будет доступен по адресу:
-
-## https://alexqartveli.github.io/-/
-
-Но сначала нужно **один раз включить GitHub Pages** (2 минуты):
-
----
-
-## Шаг 1. Включите GitHub Pages
-
-1. Откройте: **https://github.com/AlexQartveli/-/settings/pages**
-2. **Source:** Deploy from a branch
-3. **Branch:** `gh-pages` → `/ (root)`
-4. Нажмите **Save**
-
-Через 1–2 минуты откройте на телефоне:
+## Адрес
 
 ### https://alexqartveli.github.io/-/
 
 ---
 
-## Шаг 2. Запустите backend (для данных CRM)
+## Если не открывается
 
-1. Зайдите на **https://render.com** → войдите через GitHub
-2. **New → Blueprint**
-3. Выберите репозиторий `AlexQartveli/-`
-4. Нажмите **Apply**
+### 1. Включите GitHub Pages
 
-API: https://bitrix-crm-api.onrender.com
+1. Откройте: **https://github.com/AlexQartveli/-/settings/pages**
+2. **Source:** Deploy from a branch
+3. **Branch:** `gh-pages` → `/ (root)`
+4. **Save**
 
-> Первый запрос после простоя может идти ~30 секунд (бесплатный тариф Render).
+### 2. Подключите backend на Render
+
+1. **https://render.com** → войти через GitHub
+2. **New → Blueprint** → репозиторий `AlexQartveli/-`
+3. **Apply**
+
+API: https://kinetix-api.onrender.com
+
+> Первый запрос после простоя может идти ~30 секунд.
 
 ---
 
-## Создать отдельный репозиторий `bitrix-crm`
-
-Если хотите отдельный проект (не `-`), выполните на компьютере:
+## Создать отдельный репозиторий `kinetix`
 
 ```bash
-git clone https://github.com/AlexQartveli/-.git bitrix-crm
-cd bitrix-crm
-gh repo create bitrix-crm --public --source=. --push
+git clone https://github.com/AlexQartveli/-.git kinetix
+cd kinetix
+gh repo create kinetix --public --source=. --push
 ```
 
-Потом в **Settings → Pages** нового репозитория включите ветку `gh-pages`.
+Потом в **Settings → Pages** включите ветку `gh-pages`.
 
-Адрес будет: **https://alexqartveli.github.io/bitrix-crm/**
+Адрес: **https://alexqartveli.github.io/kinetix/**

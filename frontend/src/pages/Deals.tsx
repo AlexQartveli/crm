@@ -61,7 +61,7 @@ export default function Deals() {
                 {stageDeals.map((deal) => (
                   <div key={deal.id} className="card p-4 hover:shadow-md transition-shadow">
                     <h3 className="font-medium text-sm mb-2">{deal.title}</h3>
-                    <div className="text-lg font-bold text-bitrix-700 mb-2">
+                    <div className="text-lg font-bold text-kinetix-700 mb-2">
                       {formatMoney(deal.amount)}
                     </div>
                     {deal.company_name && (

@@ -27,9 +27,9 @@ const navItems = [
 function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <>
-      <div className="p-5 border-b border-bitrix-700">
-        <h1 className="text-xl font-bold tracking-tight">BitrixCRM</h1>
-        <p className="text-bitrix-300 text-xs mt-1">CRM + Склад</p>
+      <div className="p-5 border-b border-kinetix-700">
+        <h1 className="text-xl font-bold tracking-tight">Kinetix</h1>
+        <p className="text-kinetix-300 text-xs mt-1">CRM + Склад</p>
       </div>
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
         {navItems.map(({ to, icon: Icon, label }) => (
@@ -41,8 +41,8 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
             className={({ isActive }) =>
               `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                 isActive
-                  ? 'bg-bitrix-600 text-white'
-                  : 'text-bitrix-200 hover:bg-bitrix-700 hover:text-white'
+                  ? 'bg-kinetix-600 text-white'
+                  : 'text-kinetix-200 hover:bg-kinetix-700 hover:text-white'
               }`
             }
           >
@@ -60,17 +60,17 @@ export default function Layout() {
 
   return (
     <div className="flex min-h-screen">
-      <aside className="hidden md:flex w-60 bg-bitrix-800 text-white flex-col shrink-0">
+      <aside className="hidden md:flex w-60 bg-kinetix-800 text-white flex-col shrink-0">
         <Sidebar />
       </aside>
 
       {menuOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div className="absolute inset-0 bg-black/50" onClick={() => setMenuOpen(false)} />
-          <aside className="relative w-64 h-full bg-bitrix-800 text-white flex flex-col">
+          <aside className="relative w-64 h-full bg-kinetix-800 text-white flex flex-col">
             <button
               onClick={() => setMenuOpen(false)}
-              className="absolute top-4 right-4 p-1 text-bitrix-200 hover:text-white"
+              className="absolute top-4 right-4 p-1 text-kinetix-200 hover:text-white"
             >
               <X size={22} />
             </button>
@@ -80,11 +80,11 @@ export default function Layout() {
       )}
 
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="md:hidden flex items-center gap-3 bg-bitrix-800 text-white px-4 py-3 shrink-0">
+        <header className="md:hidden flex items-center gap-3 bg-kinetix-800 text-white px-4 py-3 shrink-0">
           <button onClick={() => setMenuOpen(true)} className="p-1">
             <Menu size={22} />
           </button>
-          <span className="font-bold">BitrixCRM</span>
+          <span className="font-bold">Kinetix</span>
         </header>
         <main className="flex-1 overflow-auto">
           <Outlet />

@@ -11,8 +11,8 @@ from app.seed import seed_database
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
-    title="BitrixCRM",
-    description="CRM + Склад по принципу Битрикс24",
+    title="Kinetix",
+    description="CRM + Склад — Kinetix",
     version="1.0.0",
 )
 

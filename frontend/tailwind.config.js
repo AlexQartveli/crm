@@ -4,7 +4,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        bitrix: {
+        kinetix: {
           50: '#e8f4fd',
           100: '#d1e9fb',
           200: '#a3d3f7',
