@@ -25,7 +25,32 @@
 | Frontend  | React, TypeScript, Tailwind CSS, Vite |
 | API       | REST, OpenAPI (Swagger) |
 
-## Быстрый старт
+## Деплой в интернет (с телефона)
+
+### Frontend — GitHub Pages
+
+После push в `main` GitHub Actions автоматически публикует фронтенд:
+
+**https://alexqartveli.github.io/-/**
+
+В настройках репозитория включите Pages: **Settings → Pages → Source: GitHub Actions**.
+
+### Backend — Render (бесплатно)
+
+1. Зайдите на [render.com](https://render.com) и войдите через GitHub
+2. **New → Blueprint** → выберите репозиторий
+3. Render подхватит `render.yaml` и задеплоит API
+4. API будет доступен по адресу: **https://bitrix-crm-api.onrender.com**
+
+> На бесплатном тарифе Render сервер «засыпает» после 15 мин бездействия. Первый запрос может занять ~30 сек.
+
+### С телефона
+
+Откройте в браузере: **https://alexqartveli.github.io/-/**
+
+Телефон и компьютер должны быть подключены к интернету. Wi-Fi не обязателен.
+
+## Быстрый старт (локально)
 
 ### Docker Compose
 
