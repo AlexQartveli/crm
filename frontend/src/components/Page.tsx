@@ -1,4 +1,5 @@
 import { ReactNode } from 'react'
+import { useI18n } from '../i18n/I18nContext'
 
 interface PageProps {
   title: string
@@ -27,9 +28,10 @@ export function TableWrap({ children }: { children: ReactNode }) {
 }
 
 export function Loading() {
+  const { t } = useI18n()
   return (
     <div className="p-8 flex items-center justify-center">
-      <div className="animate-pulse text-gray-400">Загрузка...</div>
+      <div className="animate-pulse text-gray-400">{t.common.loading}</div>
     </div>
   )
 }

@@ -14,26 +14,37 @@ import {
   Calculator,
   Settings,
 } from 'lucide-react'
-
-const navItems = [
-  { to: '/', icon: LayoutDashboard, label: 'Дашборд' },
-  { to: '/leads', icon: UserPlus, label: 'Лиды' },
-  { to: '/deals', icon: Handshake, label: 'Сделки' },
-  { to: '/contacts', icon: Users, label: 'Контакты' },
-  { to: '/companies', icon: Building2, label: 'Компании' },
-  { to: '/products', icon: Package, label: 'Товары' },
-  { to: '/warehouse', icon: Warehouse, label: 'Склад' },
-  { to: '/movements', icon: ArrowLeftRight, label: 'Движения' },
-  { to: '/accounting', icon: Calculator, label: 'Бухгалтерия' },
-  { to: '/accounting/settings', icon: Settings, label: 'RS.ge' },
-]
+import { useI18n } from '../i18n/I18nContext'
+import LanguageSwitcher from './LanguageSwitcher'
 
 function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
+  const { t } = useI18n()
+
+  const navItems = [
+    { to: '/', icon: LayoutDashboard, label: t.nav.dashboard },
+    { to: '/leads', icon: UserPlus, label: t.nav.leads },
+    { to: '/deals', icon: Handshake, label: t.nav.deals },
+    { to: '/contacts', icon: Users, label: t.nav.contacts },
+    { to: '/companies', icon: Building2, label: t.nav.companies },
+    { to: '/products', icon: Package, label: t.nav.products },
+    { to: '/warehouse', icon: Warehouse, label: t.nav.warehouse },
+    { to: '/movements', icon: ArrowLeftRight, label: t.nav.movements },
+    { to: '/accounting', icon: Calculator, label: t.nav.accounting },
+    { to: '/accounting/settings', icon: Settings, label: t.nav.rsge },
+  ]
+
   return (
     <>
       <div className="p-5 border-b border-kinetix-700">
-        <h1 className="text-xl font-bold tracking-tight">Kinetix</h1>
-        <p className="text-kinetix-300 text-xs mt-1">CRM + Склад + RS.ge</p>
+        <div className="flex items-center justify-between gap-2">
+          <div>
+            <h1 className="text-xl font-bold tracking-tight">Kinetix</h1>
+            <p className="text-kinetix-300 text-xs mt-1">{t.app.tagline}</p>
+          </div>
+        </div>
+        <div className="mt-3">
+          <LanguageSwitcher />
+        </div>
       </div>
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
         {navItems.map(({ to, icon: Icon, label }) => (
@@ -74,7 +85,7 @@ export default function Layout() {
           <aside className="relative w-64 h-full bg-kinetix-800 text-white flex flex-col">
             <button
               onClick={() => setMenuOpen(false)}
-              className="absolute top-4 right-4 p-1 text-kinetix-200 hover:text-white"
+              className="absolute top-4 right-4 p-1 text-kinetix-200 hover:text-white z-10"
             >
               <X size={22} />
             </button>
@@ -84,11 +95,14 @@ export default function Layout() {
       )}
 
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="md:hidden flex items-center gap-3 bg-kinetix-800 text-white px-4 py-3 shrink-0">
-          <button onClick={() => setMenuOpen(true)} className="p-1">
-            <Menu size={22} />
-          </button>
-          <span className="font-bold">Kinetix</span>
+        <header className="md:hidden flex items-center justify-between bg-kinetix-800 text-white px-4 py-3 shrink-0">
+          <div className="flex items-center gap-3">
+            <button onClick={() => setMenuOpen(true)} className="p-1">
+              <Menu size={22} />
+            </button>
+            <span className="font-bold">Kinetix</span>
+          </div>
+          <LanguageSwitcher compact />
         </header>
         <main className="flex-1 overflow-auto">
           <Outlet />

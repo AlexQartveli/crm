@@ -4,10 +4,12 @@ import { api, Contact, Company } from '../api/client'
 import Modal from '../components/Modal'
 import CardActions, { RowActions } from '../components/CardActions'
 import Page, { TableWrap, Loading, Empty } from '../components/Page'
+import { useI18n } from '../i18n/I18nContext'
 
 const emptyForm = { name: '', phone: '', email: '', position: '', company_id: 0 }
 
 export default function Contacts() {
+  const { t } = useI18n()
   const [contacts, setContacts] = useState<Contact[]>([])
   const [companies, setCompanies] = useState<Company[]>([])
   const [loading, setLoading] = useState(true)
@@ -21,68 +23,47 @@ export default function Contacts() {
       const [c, co] = await Promise.all([api.contacts.list(), api.companies.list()])
       setContacts(c)
       setCompanies(co)
-    } catch (e) {
-      console.error(e)
     } finally {
       setLoading(false)
     }
   }
   useEffect(() => { load() }, [])
 
-  const openCreate = () => {
-    setEditingId(null)
-    setForm(emptyForm)
-    setModalOpen(true)
-  }
-
+  const openCreate = () => { setEditingId(null); setForm(emptyForm); setModalOpen(true) }
   const openEdit = (c: Contact) => {
     setEditingId(c.id)
-    setForm({
-      name: c.name,
-      phone: c.phone || '',
-      email: c.email || '',
-      position: c.position || '',
-      company_id: c.company_id || 0,
-    })
+    setForm({ name: c.name, phone: c.phone || '', email: c.email || '', position: c.position || '', company_id: c.company_id || 0 })
     setModalOpen(true)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const data = { ...form, company_id: form.company_id || undefined }
-    if (editingId) {
-      await api.contacts.update(editingId, data)
-    } else {
-      await api.contacts.create(data)
-    }
+    if (editingId) await api.contacts.update(editingId, data)
+    else await api.contacts.create(data)
     setModalOpen(false)
     load()
   }
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Удалить контакт?')) return
+    if (!confirm(t.common.confirmDeleteContact)) return
     await api.contacts.delete(id)
     load()
   }
 
-  const companyName = (id?: number) => companies.find((c) => c.id === id)?.name || '—'
+  const companyName = (id?: number) => companies.find((c) => c.id === id)?.name || t.common.dash
 
   if (loading) return <Loading />
 
   return (
     <Page
-      title="Контакты"
-      action={
-        <button className="btn-primary flex items-center gap-2" onClick={openCreate}>
-          <Plus size={18} /> Добавить
-        </button>
-      }
+      title={t.contacts.title}
+      action={<button className="btn-primary flex items-center gap-2" onClick={openCreate}><Plus size={18} /> {t.common.add}</button>}
     >
       {contacts.length === 0 ? (
-        <Empty text="Нет контактов" />
+        <Empty text={t.common.noContacts} />
       ) : (
         <>
-          {/* Мобильные карточки */}
           <div className="md:hidden space-y-3">
             {contacts.map((c) => (
               <div key={c.id} className="card p-4">
@@ -97,18 +78,16 @@ export default function Contacts() {
               </div>
             ))}
           </div>
-
-          {/* Десктоп таблица */}
           <div className="hidden md:block">
             <TableWrap>
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 border-b">
                   <tr>
-                    <th className="text-left p-3 font-medium text-gray-600">Имя</th>
-                    <th className="text-left p-3 font-medium text-gray-600">Должность</th>
-                    <th className="text-left p-3 font-medium text-gray-600">Компания</th>
-                    <th className="text-left p-3 font-medium text-gray-600">Телефон</th>
-                    <th className="text-left p-3 font-medium text-gray-600">Email</th>
+                    <th className="text-left p-3 font-medium text-gray-600">{t.common.name}</th>
+                    <th className="text-left p-3 font-medium text-gray-600">{t.common.position}</th>
+                    <th className="text-left p-3 font-medium text-gray-600">{t.common.company}</th>
+                    <th className="text-left p-3 font-medium text-gray-600">{t.common.phone}</th>
+                    <th className="text-left p-3 font-medium text-gray-600">{t.common.email}</th>
                     <th className="p-3"></th>
                   </tr>
                 </thead>
@@ -116,13 +95,11 @@ export default function Contacts() {
                   {contacts.map((c) => (
                     <tr key={c.id} className="border-b hover:bg-gray-50">
                       <td className="p-3 font-medium">{c.name}</td>
-                      <td className="p-3">{c.position || '—'}</td>
+                      <td className="p-3">{c.position || t.common.dash}</td>
                       <td className="p-3">{companyName(c.company_id)}</td>
-                      <td className="p-3">{c.phone || '—'}</td>
-                      <td className="p-3">{c.email || '—'}</td>
-                      <td className="p-3">
-                        <RowActions onEdit={() => openEdit(c)} onDelete={() => handleDelete(c.id)} />
-                      </td>
+                      <td className="p-3">{c.phone || t.common.dash}</td>
+                      <td className="p-3">{c.email || t.common.dash}</td>
+                      <td className="p-3"><RowActions onEdit={() => openEdit(c)} onDelete={() => handleDelete(c.id)} /></td>
                     </tr>
                   ))}
                 </tbody>
@@ -132,36 +109,22 @@ export default function Contacts() {
         </>
       )}
 
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editingId ? 'Редактировать контакт' : 'Новый контакт'}>
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editingId ? t.contacts.edit : t.contacts.new}>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div><label className="label">{t.common.name} *</label><input className="input" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
+          <div><label className="label">{t.common.phone}</label><input className="input" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></div>
+          <div><label className="label">{t.common.email}</label><input className="input" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
+          <div><label className="label">{t.common.position}</label><input className="input" value={form.position} onChange={(e) => setForm({ ...form, position: e.target.value })} /></div>
           <div>
-            <label className="label">Имя *</label>
-            <input className="input" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-          </div>
-          <div>
-            <label className="label">Телефон</label>
-            <input className="input" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-          </div>
-          <div>
-            <label className="label">Email</label>
-            <input className="input" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-          </div>
-          <div>
-            <label className="label">Должность</label>
-            <input className="input" value={form.position} onChange={(e) => setForm({ ...form, position: e.target.value })} />
-          </div>
-          <div>
-            <label className="label">Компания</label>
+            <label className="label">{t.common.company}</label>
             <select className="input" value={form.company_id} onChange={(e) => setForm({ ...form, company_id: +e.target.value })}>
-              <option value={0}>—</option>
-              {companies.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
+              <option value={0}>{t.common.dash}</option>
+              {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
           <div className="flex justify-end gap-3 pt-2">
-            <button type="button" className="btn-secondary" onClick={() => setModalOpen(false)}>Отмена</button>
-            <button type="submit" className="btn-primary">{editingId ? 'Сохранить' : 'Создать'}</button>
+            <button type="button" className="btn-secondary" onClick={() => setModalOpen(false)}>{t.common.cancel}</button>
+            <button type="submit" className="btn-primary">{editingId ? t.common.save : t.common.create}</button>
           </div>
         </form>
       </Modal>

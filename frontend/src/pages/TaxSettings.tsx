@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react'
 import { Link2, Shield, Search } from 'lucide-react'
 import { api, RsgeSettings } from '../api/client'
 import Page, { Loading } from '../components/Page'
+import { useI18n } from '../i18n/I18nContext'
 
 export default function TaxSettings() {
+  const { t } = useI18n()
   const [settings, setSettings] = useState<RsgeSettings | null>(null)
   const [loading, setLoading] = useState(true)
   const [authLoading, setAuthLoading] = useState(false)
@@ -36,7 +38,7 @@ export default function TaxSettings() {
       username: form.username,
       password: form.password,
     })
-    setMessage('Настройки сохранены')
+    setMessage(t.common.settingsSaved)
     load()
   }
 
@@ -53,13 +55,13 @@ export default function TaxSettings() {
       if (result.needs_pin) {
         setNeedsPin(true)
         setPinToken(result.pin_token || '')
-        setMessage('Введите PIN из SMS')
+        setMessage(t.common.enterPin)
       } else if (result.success) {
-        setMessage('Подключено к RS.ge ✓')
+        setMessage(`${t.common.connected} ✓`)
         setNeedsPin(false)
         load()
       } else {
-        setMessage(result.message || 'Ошибка авторизации')
+        setMessage(result.message || t.common.authError)
       }
     } finally {
       setAuthLoading(false)
@@ -75,46 +77,46 @@ export default function TaxSettings() {
   if (loading) return <Loading />
 
   return (
-    <Page title="RS.ge — Налоговая Грузии">
+    <Page title={t.tax.title}>
       <div className="grid md:grid-cols-2 gap-6">
         <div className="card p-6">
           <div className="flex items-center gap-3 mb-6">
             <Link2 className="text-kinetix-600" size={24} />
             <div>
-              <h2 className="text-lg font-semibold">Подключение к RS.ge</h2>
-              <p className="text-sm text-gray-500">eapi.rs.ge — электронные налоговые счета</p>
+              <h2 className="text-lg font-semibold">{t.tax.connectTitle}</h2>
+              <p className="text-sm text-gray-500">{t.tax.connectDesc}</p>
             </div>
           </div>
 
           {settings?.is_connected && (
             <div className="mb-4 p-3 bg-green-50 text-green-700 rounded-lg text-sm flex items-center gap-2">
-              <Shield size={16} /> Подключено к RS.ge
+              <Shield size={16} /> {t.tax.connected}
             </div>
           )}
 
           <form onSubmit={handleSave} className="space-y-4">
             <div>
-              <label className="label">TIN компании (საიდენტიფიკაციო ნომერი)</label>
+              <label className="label">{t.tax.companyTin}</label>
               <input className="input" required value={form.company_tin} onChange={(e) => setForm({ ...form, company_tin: e.target.value })} placeholder="123456789" />
             </div>
             <div>
-              <label className="label">Логин RS.ge</label>
+              <label className="label">{t.tax.rsgeLogin}</label>
               <input className="input" required value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} />
             </div>
             <div>
-              <label className="label">Пароль</label>
+              <label className="label">{t.common.password}</label>
               <input className="input" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
             </div>
             {needsPin && (
               <div>
-                <label className="label">PIN из SMS</label>
+                <label className="label">{t.common.pinSms}</label>
                 <input className="input" value={form.pin} onChange={(e) => setForm({ ...form, pin: e.target.value })} />
               </div>
             )}
             <div className="flex gap-3">
-              <button type="submit" className="btn-secondary">Сохранить</button>
+              <button type="submit" className="btn-secondary">{t.common.save}</button>
               <button type="button" className="btn-primary" onClick={handleAuth} disabled={authLoading}>
-                {authLoading ? 'Подключение...' : 'Подключить'}
+                {authLoading ? t.common.connecting : t.common.connect}
               </button>
             </div>
           </form>
@@ -124,29 +126,29 @@ export default function TaxSettings() {
         <div className="card p-6">
           <div className="flex items-center gap-3 mb-6">
             <Search className="text-kinetix-600" size={24} />
-            <h2 className="text-lg font-semibold">Проверка плательщика НДС</h2>
+            <h2 className="text-lg font-semibold">{t.tax.vatCheck}</h2>
           </div>
           <div className="flex gap-3 mb-4">
-            <input className="input" value={vatTin} onChange={(e) => setVatTin(e.target.value)} placeholder="TIN контрагента" />
-            <button className="btn-primary shrink-0" onClick={handleVatCheck}>Проверить</button>
+            <input className="input" value={vatTin} onChange={(e) => setVatTin(e.target.value)} placeholder={t.tax.counterpartyTin} />
+            <button className="btn-primary shrink-0" onClick={handleVatCheck}>{t.common.check}</button>
           </div>
           {vatResult && (
             <div className={`p-4 rounded-lg ${vatResult.is_vat_payer ? 'bg-green-50' : 'bg-gray-50'}`}>
-              <p className="font-medium">{vatResult.org_name || 'Организация'}</p>
+              <p className="font-medium">{vatResult.org_name || t.common.organization}</p>
               <p className="text-sm mt-1">
-                {vatResult.is_vat_payer ? '✓ Плательщик НДС' : '✗ Не является плательщиком НДС'}
+                {vatResult.is_vat_payer ? `✓ ${t.common.vatPayer}` : `✗ ${t.common.notVatPayer}`}
               </p>
             </div>
           )}
 
           <div className="mt-8 p-4 bg-gray-50 rounded-lg text-sm text-gray-600 space-y-2">
-            <p className="font-medium text-gray-800">Возможности интеграции:</p>
+            <p className="font-medium text-gray-800">{t.tax.features}</p>
             <ul className="list-disc list-inside space-y-1">
-              <li>Создание налоговых счетов (საგადასახადო დოკუმენტი)</li>
-              <li>Отправка и активация в RS.ge</li>
-              <li>Проверка статуса плательщика НДС</li>
-              <li>Привязка счетов к сделкам CRM</li>
-              <li>НДС 18% (ставка Грузии)</li>
+              <li>{t.tax.f1}</li>
+              <li>{t.tax.f2}</li>
+              <li>{t.tax.f3}</li>
+              <li>{t.tax.f4}</li>
+              <li>{t.tax.f5}</li>
             </ul>
           </div>
         </div>

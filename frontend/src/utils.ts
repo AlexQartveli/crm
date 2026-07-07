@@ -1,38 +1,63 @@
-export const DEAL_STAGES: Record<string, { label: string; color: string }> = {
-  new: { label: 'Новая', color: 'bg-blue-100 text-blue-800' },
-  preparation: { label: 'Подготовка', color: 'bg-purple-100 text-purple-800' },
-  proposal: { label: 'Предложение', color: 'bg-yellow-100 text-yellow-800' },
-  negotiation: { label: 'Переговоры', color: 'bg-orange-100 text-orange-800' },
-  won: { label: 'Выиграна', color: 'bg-green-100 text-green-800' },
-  lost: { label: 'Проиграна', color: 'bg-red-100 text-red-800' },
+import { useI18n } from './i18n/I18nContext'
+import type { Translations } from './i18n/translations'
+
+type StatusInfo = { label: string; color: string }
+
+function mapStatuses(
+  labels: Record<string, string>,
+  colors: Record<string, string>,
+): Record<string, StatusInfo> {
+  return Object.fromEntries(
+    Object.entries(labels).map(([k, label]) => [k, { label, color: colors[k] || '' }]),
+  )
 }
 
-export const LEAD_STATUSES: Record<string, { label: string; color: string }> = {
-  new: { label: 'Новый', color: 'bg-blue-100 text-blue-800' },
-  in_progress: { label: 'В работе', color: 'bg-yellow-100 text-yellow-800' },
-  converted: { label: 'Конвертирован', color: 'bg-green-100 text-green-800' },
-  junk: { label: 'Некачественный', color: 'bg-gray-100 text-gray-800' },
+const STAGE_COLORS: Record<string, string> = {
+  new: 'bg-blue-100 text-blue-800',
+  preparation: 'bg-purple-100 text-purple-800',
+  proposal: 'bg-yellow-100 text-yellow-800',
+  negotiation: 'bg-orange-100 text-orange-800',
+  won: 'bg-green-100 text-green-800',
+  lost: 'bg-red-100 text-red-800',
 }
 
-export const INVOICE_STATUSES: Record<string, { label: string; color: string }> = {
-  draft: { label: 'Черновик', color: 'bg-gray-100 text-gray-800' },
-  pending: { label: 'Ожидание', color: 'bg-yellow-100 text-yellow-800' },
-  sent: { label: 'Отправлен', color: 'bg-blue-100 text-blue-800' },
-  active: { label: 'Активен', color: 'bg-green-100 text-green-800' },
-  cancelled: { label: 'Отменён', color: 'bg-red-100 text-red-800' },
-  refused: { label: 'Отклонён', color: 'bg-red-100 text-red-800' },
+const LEAD_COLORS: Record<string, string> = {
+  new: 'bg-blue-100 text-blue-800',
+  in_progress: 'bg-yellow-100 text-yellow-800',
+  converted: 'bg-green-100 text-green-800',
+  junk: 'bg-gray-100 text-gray-800',
 }
 
-export const MOVEMENT_TYPES: Record<string, string> = {
-  receipt: 'Приход',
-  expense: 'Расход',
-  transfer: 'Перемещение',
-  adjustment: 'Корректировка',
+const INVOICE_COLORS: Record<string, string> = {
+  draft: 'bg-gray-100 text-gray-800',
+  pending: 'bg-yellow-100 text-yellow-800',
+  sent: 'bg-blue-100 text-blue-800',
+  active: 'bg-green-100 text-green-800',
+  cancelled: 'bg-red-100 text-red-800',
+  refused: 'bg-red-100 text-red-800',
 }
 
-export function formatMoney(amount: number): string {
+export function useStatuses(): {
+  dealStages: Record<string, StatusInfo>
+  leadStatuses: Record<string, StatusInfo>
+  invoiceStatuses: Record<string, StatusInfo>
+  movementTypes: Translations['movementTypes']
+} {
+  const { t } = useI18n()
+
+  return {
+    dealStages: mapStatuses(t.dealStages, STAGE_COLORS),
+    leadStatuses: mapStatuses(t.leadStatuses, LEAD_COLORS),
+    invoiceStatuses: mapStatuses(t.invoiceStatuses, INVOICE_COLORS),
+    movementTypes: t.movementTypes,
+  }
+}
+
+export function formatMoney(amount: number, locale?: string): string {
+  const loc = locale || localStorage.getItem('kinetix_locale') || 'ka'
+  const fmtLocale = loc === 'ka' ? 'ka-GE' : loc === 'en' ? 'en-US' : 'ru-RU'
   try {
-    return new Intl.NumberFormat('ka-GE', {
+    return new Intl.NumberFormat(fmtLocale, {
       style: 'currency',
       currency: 'GEL',
       maximumFractionDigits: 0,
@@ -42,8 +67,10 @@ export function formatMoney(amount: number): string {
   }
 }
 
-export function formatDate(date: string): string {
-  return new Intl.DateTimeFormat('ru-RU', {
+export function formatDate(date: string, locale?: string): string {
+  const loc = locale || localStorage.getItem('kinetix_locale') || 'ka'
+  const fmtLocale = loc === 'ka' ? 'ka-GE' : loc === 'en' ? 'en-GB' : 'ru-RU'
+  return new Intl.DateTimeFormat(fmtLocale, {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',

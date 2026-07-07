@@ -3,9 +3,12 @@ import { Plus, Send, CheckCircle, FileText } from 'lucide-react'
 import { api, TaxInvoice, Deal, Company } from '../api/client'
 import Modal from '../components/Modal'
 import Page, { TableWrap, Loading } from '../components/Page'
-import { INVOICE_STATUSES, formatMoney } from '../utils'
+import { useI18n } from '../i18n/I18nContext'
+import { useStatuses, formatMoney } from '../utils'
 
 export default function Accounting() {
+  const { t } = useI18n()
+  const { invoiceStatuses } = useStatuses()
   const [invoices, setInvoices] = useState<TaxInvoice[]>([])
   const [deals, setDeals] = useState<Deal[]>([])
   const [companies, setCompanies] = useState<Company[]>([])
@@ -81,10 +84,10 @@ export default function Accounting() {
 
   return (
     <Page
-      title="Бухгалтерия"
+      title={t.accounting.title}
       action={
         <button className="btn-primary flex items-center gap-2" onClick={() => setModalOpen(true)}>
-          <Plus size={18} /> Новый счёт
+          <Plus size={18} /> {t.accounting.newInvoice}
         </button>
       }
     >
@@ -92,8 +95,8 @@ export default function Accounting() {
         <div className="flex items-center gap-3">
           <FileText className="text-kinetix-600" size={24} />
           <div>
-            <h3 className="font-semibold text-kinetix-800">Интеграция RS.ge (Налоговая Грузии)</h3>
-            <p className="text-sm text-kinetix-600">Электронные налоговые счета через eapi.rs.ge</p>
+            <h3 className="font-semibold text-kinetix-800">{t.accounting.rsgeTitle}</h3>
+            <p className="text-sm text-kinetix-600">{t.accounting.rsgeDesc}</p>
           </div>
         </div>
       </div>
@@ -102,14 +105,14 @@ export default function Accounting() {
         <table className="w-full text-sm min-w-[700px]">
           <thead className="bg-gray-50 border-b">
             <tr>
-              <th className="text-left p-3 font-medium text-gray-600">№</th>
-              <th className="text-left p-3 font-medium text-gray-600">Покупатель</th>
-              <th className="text-left p-3 font-medium text-gray-600">TIN</th>
-              <th className="text-right p-3 font-medium text-gray-600">Сумма</th>
-              <th className="text-right p-3 font-medium text-gray-600">НДС 18%</th>
-              <th className="text-right p-3 font-medium text-gray-600">Итого</th>
-              <th className="text-left p-3 font-medium text-gray-600">Статус</th>
-              <th className="text-left p-3 font-medium text-gray-600">RS.ge</th>
+              <th className="text-left p-3 font-medium text-gray-600">{t.common.number}</th>
+              <th className="text-left p-3 font-medium text-gray-600">{t.common.buyer}</th>
+              <th className="text-left p-3 font-medium text-gray-600">{t.common.tin}</th>
+              <th className="text-right p-3 font-medium text-gray-600">{t.common.amount}</th>
+              <th className="text-right p-3 font-medium text-gray-600">{t.common.vat}</th>
+              <th className="text-right p-3 font-medium text-gray-600">{t.common.total}</th>
+              <th className="text-left p-3 font-medium text-gray-600">{t.common.status}</th>
+              <th className="text-left p-3 font-medium text-gray-600">{t.common.rsgeId}</th>
               <th className="p-3"></th>
             </tr>
           </thead>
@@ -117,28 +120,28 @@ export default function Accounting() {
             {invoices.map((inv) => (
               <tr key={inv.id} className="border-b hover:bg-gray-50">
                 <td className="p-3 font-medium">{inv.number}</td>
-                <td className="p-3">{inv.buyer_name || inv.company_name || '—'}</td>
+                <td className="p-3">{inv.buyer_name || inv.company_name || t.common.dash}</td>
                 <td className="p-3 text-gray-500">{inv.tin_buyer}</td>
                 <td className="p-3 text-right">{formatMoney(inv.amount)}</td>
                 <td className="p-3 text-right text-orange-600">{formatMoney(inv.vat_amount)}</td>
                 <td className="p-3 text-right font-medium">{formatMoney(inv.total_amount)}</td>
                 <td className="p-3">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${INVOICE_STATUSES[inv.status]?.color || ''}`}>
-                    {INVOICE_STATUSES[inv.status]?.label || inv.status}
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${invoiceStatuses[inv.status]?.color || ''}`}>
+                    {invoiceStatuses[inv.status]?.label || inv.status}
                   </span>
                 </td>
                 <td className="p-3 text-xs text-gray-500">
-                  {inv.rsge_invoice_id ? `#${inv.rsge_invoice_id}` : '—'}
+                  {inv.rsge_invoice_id ? `#${inv.rsge_invoice_id}` : t.common.dash}
                 </td>
                 <td className="p-3">
                   <div className="flex gap-1">
                     {inv.status === 'draft' && (
-                      <button onClick={() => handleSync(inv.id)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded" title="Отправить в RS.ge">
+                      <button onClick={() => handleSync(inv.id)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded" title={t.common.sendToRsge}>
                         <Send size={16} />
                       </button>
                     )}
                     {inv.status === 'sent' && (
-                      <button onClick={() => handleActivate(inv.id)} className="p-1.5 text-green-600 hover:bg-green-50 rounded" title="Активировать">
+                      <button onClick={() => handleActivate(inv.id)} className="p-1.5 text-green-600 hover:bg-green-50 rounded" title={t.common.activate}>
                         <CheckCircle size={16} />
                       </button>
                     )}
@@ -150,12 +153,12 @@ export default function Accounting() {
         </table>
       </TableWrap>
 
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Новый налоговый счёт">
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={t.accounting.newTaxInvoice}>
         <form onSubmit={handleCreate} className="space-y-4">
           <div>
-            <label className="label">Сделка</label>
+            <label className="label">{t.common.deal}</label>
             <select className="input" value={form.deal_id} onChange={(e) => onDealSelect(+e.target.value)}>
-              <option value={0}>— выберите —</option>
+              <option value={0}>{t.common.select}</option>
               {deals.map((d) => (
                 <option key={d.id} value={d.id}>{d.title} ({formatMoney(d.amount)})</option>
               ))}
@@ -163,29 +166,29 @@ export default function Accounting() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="label">TIN продавца *</label>
+              <label className="label">{t.common.sellerTin} *</label>
               <input className="input" required value={form.tin_seller} onChange={(e) => setForm({ ...form, tin_seller: e.target.value })} />
             </div>
             <div>
-              <label className="label">TIN покупателя *</label>
+              <label className="label">{t.common.buyerTin} *</label>
               <input className="input" required value={form.tin_buyer} onChange={(e) => setForm({ ...form, tin_buyer: e.target.value })} />
             </div>
           </div>
           <div>
-            <label className="label">Покупатель</label>
+            <label className="label">{t.common.buyerName}</label>
             <input className="input" value={form.buyer_name} onChange={(e) => setForm({ ...form, buyer_name: e.target.value })} />
           </div>
           <div>
-            <label className="label">Сумма (без НДС)</label>
+            <label className="label">{t.common.amountNoVat}</label>
             <input className="input" type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: +e.target.value })} />
           </div>
           <div>
-            <label className="label">Описание</label>
+            <label className="label">{t.common.description}</label>
             <input className="input" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
           </div>
           <div className="flex justify-end gap-3 pt-2">
-            <button type="button" className="btn-secondary" onClick={() => setModalOpen(false)}>Отмена</button>
-            <button type="submit" className="btn-primary">Создать</button>
+            <button type="button" className="btn-secondary" onClick={() => setModalOpen(false)}>{t.common.cancel}</button>
+            <button type="submit" className="btn-primary">{t.common.create}</button>
           </div>
         </form>
       </Modal>
