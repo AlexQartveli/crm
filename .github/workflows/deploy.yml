@@ -28,6 +28,7 @@ jobs:
         working-directory: frontend
         env:
           VITE_BASE: /-/
+          VITE_USE_LOCAL_API: 'true'
           VITE_API_URL: https://kinetix-api.onrender.com/api
         run: npm run build
 
