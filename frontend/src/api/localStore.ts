@@ -117,7 +117,33 @@ function load(): Store {
     save(s)
     return s
   }
-  return JSON.parse(raw) as Store
+  try {
+    const parsed = JSON.parse(raw) as Partial<Store>
+    if (!Array.isArray(parsed.contacts) || !Array.isArray(parsed.products) || !Array.isArray(parsed.deals)) {
+      const s = seed()
+      save(s)
+      return s
+    }
+    return {
+      ...parsed,
+      leads: parsed.leads ?? [],
+      companies: parsed.companies ?? [],
+      contacts: parsed.contacts ?? [],
+      deals: parsed.deals ?? [],
+      dealProducts: parsed.dealProducts ?? [],
+      products: parsed.products ?? [],
+      warehouses: parsed.warehouses ?? [],
+      stocks: parsed.stocks ?? [],
+      movements: parsed.movements ?? [],
+      taxInvoices: parsed.taxInvoices ?? [],
+      rsgeSettings: parsed.rsgeSettings ?? null,
+      nextId: parsed.nextId ?? 100,
+    } as Store
+  } catch {
+    const s = seed()
+    save(s)
+    return s
+  }
 }
 
 function save(store: Store) {

@@ -31,11 +31,15 @@ export const MOVEMENT_TYPES: Record<string, string> = {
 }
 
 export function formatMoney(amount: number): string {
-  return new Intl.NumberFormat('ka-GE', {
-    style: 'currency',
-    currency: 'GEL',
-    maximumFractionDigits: 0,
-  }).format(amount)
+  try {
+    return new Intl.NumberFormat('ka-GE', {
+      style: 'currency',
+      currency: 'GEL',
+      maximumFractionDigits: 0,
+    }).format(amount)
+  } catch {
+    return `${Math.round(amount)} ₾`
+  }
 }
 
 export function formatDate(date: string): string {

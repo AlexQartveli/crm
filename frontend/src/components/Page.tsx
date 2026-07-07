@@ -20,7 +20,7 @@ export default function Page({ title, action, children }: PageProps) {
 
 export function TableWrap({ children }: { children: ReactNode }) {
   return (
-    <div className="card overflow-x-auto -mx-4 md:mx-0 rounded-none md:rounded-xl">
+    <div className="card overflow-x-auto">
       {children}
     </div>
   )
