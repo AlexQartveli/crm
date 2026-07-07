@@ -27,28 +27,34 @@
 
 ## Деплой в интернет (с телефона)
 
-### Frontend — GitHub Pages
+### Шаг 1. Включите GitHub Pages (один раз)
 
-После push в `main` GitHub Actions автоматически публикует фронтенд:
+1. Откройте **Settings → Pages** в репозитории
+2. Source: **Deploy from a branch**
+3. Branch: **gh-pages** / **/ (root)**
+4. Save
 
-**https://alexqartveli.github.io/-/**
+### Шаг 2. Запустите деплой
 
-В настройках репозитория включите Pages: **Settings → Pages → Source: GitHub Actions**.
+После push в `main` GitHub Actions собирает и публикует фронтенд на ветку `gh-pages`.
 
-### Backend — Render (бесплатно)
+Или вручную: **Actions → Deploy to GitHub Pages → Run workflow**
 
-1. Зайдите на [render.com](https://render.com) и войдите через GitHub
-2. **New → Blueprint** → выберите репозиторий
+### Шаг 3. Подключите backend на Render (один раз)
+
+1. Зайдите на [render.com](https://render.com) → войдите через GitHub
+2. **New → Blueprint** → выберите репозиторий `AlexQartveli/-`
 3. Render подхватит `render.yaml` и задеплоит API
-4. API будет доступен по адресу: **https://bitrix-crm-api.onrender.com**
 
-> На бесплатном тарифе Render сервер «засыпает» после 15 мин бездействия. Первый запрос может занять ~30 сек.
+### Готово — открывайте с телефона
 
-### С телефона
+| Что | Адрес |
+|-----|-------|
+| **CRM (интерфейс)** | https://alexqartveli.github.io/-/
+| **API** | https://bitrix-crm-api.onrender.com |
+| **Swagger** | https://bitrix-crm-api.onrender.com/docs |
 
-Откройте в браузере: **https://alexqartveli.github.io/-/**
-
-Телефон и компьютер должны быть подключены к интернету. Wi-Fi не обязателен.
+> На бесплатном Render сервер «засыпает» после 15 мин бездействия. Первый запрос может занять ~30 сек.
 
 ## Быстрый старт (локально)
 
