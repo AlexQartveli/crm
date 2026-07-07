@@ -50,7 +50,7 @@
 
 | Что | Адрес |
 |-----|-------|
-| **CRM (интерфейс)** | https://alexqartveli.github.io/-/
+| **CRM (интерфейс)** | https://alexqartveli.github.io/bitrix-crm/
 | **API** | https://bitrix-crm-api.onrender.com |
 | **Swagger** | https://bitrix-crm-api.onrender.com/docs |
 
