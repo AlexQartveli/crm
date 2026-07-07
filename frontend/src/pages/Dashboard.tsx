@@ -1,22 +1,19 @@
 import { useEffect, useState } from 'react'
 import { Users, Handshake, Building2, Package, TrendingUp, DollarSign } from 'lucide-react'
 import { api, DashboardData } from '../api/client'
+import Page, { Loading } from '../components/Page'
+
 import { DEAL_STAGES, formatMoney } from '../utils'
 
 export default function Dashboard() {
   const [data, setData] = useState<DashboardData | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    api.dashboard().then(setData).catch(console.error)
+    api.dashboard().then(setData).catch(console.error).finally(() => setLoading(false))
   }, [])
 
-  if (!data) {
-    return (
-      <div className="p-8 flex items-center justify-center">
-        <div className="animate-pulse text-gray-400">Загрузка...</div>
-      </div>
-    )
-  }
+  if (loading || !data) return <Loading />
 
   const stats = [
     { label: 'Лиды', value: data.leads, icon: Users, color: 'text-blue-600 bg-blue-50' },
@@ -28,8 +25,7 @@ export default function Dashboard() {
   ]
 
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold mb-6">Дашборд</h1>
+    <Page title="Дашборд">
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
         {stats.map(({ label, value, icon: Icon, color }) => (
@@ -77,6 +73,6 @@ export default function Dashboard() {
           ))}
         </div>
       </div>
-    </div>
+    </Page>
   )
 }

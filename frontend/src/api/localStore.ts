@@ -6,12 +6,16 @@ import type {
   DealProduct,
   Lead,
   Product,
+  RsgeAuthResult,
+  RsgeSettings,
   Stock,
   StockMovement,
+  TaxInvoice,
+  VatCheckResult,
   Warehouse,
 } from './client'
 
-const STORAGE_KEY = 'kinetix_data'
+const STORAGE_KEY = 'kinetix_data_v2'
 
 interface Store {
   leads: Lead[]
@@ -23,11 +27,18 @@ interface Store {
   warehouses: Warehouse[]
   stocks: Omit<Stock, 'available' | 'product_name' | 'warehouse_name'>[]
   movements: StockMovement[]
+  taxInvoices: TaxInvoice[]
+  rsgeSettings: RsgeSettings | null
   nextId: number
 }
 
 function now() {
   return new Date().toISOString()
+}
+
+function calcVat(amount: number, rate = 18) {
+  const vat = Math.round(amount * rate) / 100
+  return { vat, total: amount + vat }
 }
 
 function seed(): Store {
@@ -79,6 +90,23 @@ function seed(): Store {
       { id: 4, deal_id: 2, product_id: 4, quantity: 5, price: 7200, product_name: 'Мышь Logitech MX Master' },
     ],
     movements: [],
+    taxInvoices: [
+      {
+        id: 1, number: 'INV-2026-0001', deal_id: 4, company_id: 2,
+        tin_seller: '123456789', tin_buyer: '405321742', buyer_name: 'ИП Козлов А.В.',
+        amount: 38135.59, vat_rate: 18, vat_amount: 6864.41, total_amount: 45000,
+        status: 'active', rsge_invoice_id: 8842, description: 'Кабельная продукция',
+        created_at: t, synced_at: t, deal_title: 'Кабельная продукция', company_name: 'ИП Козлов А.В.',
+      },
+      {
+        id: 2, number: 'INV-2026-0002', deal_id: 1, company_id: 1,
+        tin_seller: '123456789', tin_buyer: '206322102', buyer_name: 'ООО «ТехноПром»',
+        amount: 440677.97, vat_rate: 18, vat_amount: 79322.03, total_amount: 520000,
+        status: 'draft', description: 'Поставка IT-оборудования',
+        created_at: t, deal_title: 'Поставка IT-оборудования', company_name: 'ООО «ТехноПром»',
+      },
+    ],
+    rsgeSettings: { id: 1, company_tin: '123456789', username: 'demo', is_connected: true, last_sync: t },
   }
 }
 
@@ -413,6 +441,91 @@ export const localApi = {
       updateProductStockTotals(s)
       save(s)
       return movement
+    },
+  },
+
+  accounting: {
+    invoices: {
+      list: () => {
+        const s = load()
+        return s.taxInvoices.sort((a, b) => b.created_at.localeCompare(a.created_at))
+      },
+      create: (data: Partial<TaxInvoice>) => {
+        const s = load()
+        const { vat, total } = calcVat(data.amount || 0, data.vat_rate || 18)
+        const inv: TaxInvoice = {
+          id: nextId(s),
+          number: `INV-${new Date().getFullYear()}-${String(s.taxInvoices.length + 1).padStart(4, '0')}`,
+          deal_id: data.deal_id,
+          company_id: data.company_id,
+          tin_seller: data.tin_seller || '123456789',
+          tin_buyer: data.tin_buyer || '',
+          buyer_name: data.buyer_name,
+          amount: data.amount || 0,
+          vat_rate: data.vat_rate || 18,
+          vat_amount: vat,
+          total_amount: total,
+          status: 'draft',
+          description: data.description,
+          created_at: now(),
+        }
+        s.taxInvoices.unshift(inv)
+        save(s)
+        return inv
+      },
+      sync: (id: number) => {
+        const s = load()
+        const inv = s.taxInvoices.find((i) => i.id === id)
+        if (!inv) throw new Error('Счёт не найден')
+        inv.rsge_transaction_id = `TXN-${Math.floor(Math.random() * 90000) + 10000}`
+        inv.rsge_invoice_id = Math.floor(Math.random() * 9000) + 1000
+        inv.status = 'sent'
+        inv.synced_at = now()
+        save(s)
+        return inv
+      },
+      activate: (id: number) => {
+        const s = load()
+        const inv = s.taxInvoices.find((i) => i.id === id)
+        if (!inv) throw new Error('Счёт не найден')
+        inv.status = 'active'
+        save(s)
+        return inv
+      },
+    },
+    settings: {
+      get: () => load().rsgeSettings,
+      save: (data: Partial<RsgeSettings> & { password?: string }) => {
+        const s = load()
+        s.rsgeSettings = {
+          id: 1,
+          company_tin: data.company_tin || '',
+          username: data.username || '',
+          is_connected: s.rsgeSettings?.is_connected || false,
+          last_sync: s.rsgeSettings?.last_sync,
+        }
+        save(s)
+        return s.rsgeSettings!
+      },
+    },
+    rsge: {
+      auth: (data: { username: string; password: string; pin?: string; pin_token?: string }): RsgeAuthResult => {
+        const s = load()
+        if (data.pin_token && !data.pin) {
+          return { success: false, needs_pin: true, pin_token: 'mock-pin-token' }
+        }
+        if (s.rsgeSettings) {
+          s.rsgeSettings.is_connected = true
+          s.rsgeSettings.last_sync = now()
+          save(s)
+        }
+        return { success: true, message: 'Подключено к RS.ge (демо)' }
+      },
+      checkVat: (tin: string): VatCheckResult => ({
+        tin,
+        is_vat_payer: tin.length >= 9,
+        org_name: `სატესტო კომპანია ${tin.slice(0, 4)}`,
+      }),
     },
   },
 }

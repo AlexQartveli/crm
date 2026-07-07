@@ -8,6 +8,8 @@ import Companies from './pages/Companies'
 import Products from './pages/Products'
 import WarehousePage from './pages/Warehouse'
 import Movements from './pages/Movements'
+import Accounting from './pages/Accounting'
+import TaxSettings from './pages/TaxSettings'
 
 export default function App() {
   return (
@@ -21,6 +23,8 @@ export default function App() {
         <Route path="products" element={<Products />} />
         <Route path="warehouse" element={<WarehousePage />} />
         <Route path="movements" element={<Movements />} />
+        <Route path="accounting" element={<Accounting />} />
+        <Route path="accounting/settings" element={<TaxSettings />} />
       </Route>
     </Routes>
   )

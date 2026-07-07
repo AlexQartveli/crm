@@ -11,6 +11,8 @@ import {
   ArrowLeftRight,
   Menu,
   X,
+  Calculator,
+  Settings,
 } from 'lucide-react'
 
 const navItems = [
@@ -22,6 +24,8 @@ const navItems = [
   { to: '/products', icon: Package, label: 'Товары' },
   { to: '/warehouse', icon: Warehouse, label: 'Склад' },
   { to: '/movements', icon: ArrowLeftRight, label: 'Движения' },
+  { to: '/accounting', icon: Calculator, label: 'Бухгалтерия' },
+  { to: '/accounting/settings', icon: Settings, label: 'RS.ge' },
 ]
 
 function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
@@ -29,7 +33,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
     <>
       <div className="p-5 border-b border-kinetix-700">
         <h1 className="text-xl font-bold tracking-tight">Kinetix</h1>
-        <p className="text-kinetix-300 text-xs mt-1">CRM + Склад</p>
+        <p className="text-kinetix-300 text-xs mt-1">CRM + Склад + RS.ge</p>
       </div>
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
         {navItems.map(({ to, icon: Icon, label }) => (

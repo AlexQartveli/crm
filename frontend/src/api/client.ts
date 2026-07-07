@@ -96,6 +96,25 @@ export const api = {
     list: () => withFallback(() => request<StockMovement[]>('/warehouse/movements'), () => localApi.movements.list()),
     create: (data: Partial<StockMovement>) => withFallback(() => request<StockMovement>('/warehouse/movements', { method: 'POST', body: JSON.stringify(data) }), () => localApi.movements.create(data)),
   },
+
+  accounting: {
+    invoices: {
+      list: () => withFallback(() => request<TaxInvoice[]>('/accounting/invoices'), () => localApi.accounting.invoices.list()),
+      create: (data: Partial<TaxInvoice>) => withFallback(() => request<TaxInvoice>('/accounting/invoices', { method: 'POST', body: JSON.stringify(data) }), () => localApi.accounting.invoices.create(data)),
+      sync: (id: number) => withFallback(() => request<TaxInvoice>(`/accounting/invoices/${id}/sync`, { method: 'POST' }), () => localApi.accounting.invoices.sync(id)),
+      activate: (id: number) => withFallback(() => request<TaxInvoice>(`/accounting/invoices/${id}/activate`, { method: 'POST' }), () => localApi.accounting.invoices.activate(id)),
+    },
+    settings: {
+      get: () => withFallback(() => request<RsgeSettings | null>('/accounting/settings'), () => localApi.accounting.settings.get()),
+      save: (data: Partial<RsgeSettings> & { password?: string }) => withFallback(() => request<RsgeSettings>('/accounting/settings', { method: 'POST', body: JSON.stringify(data) }), () => localApi.accounting.settings.save(data)),
+    },
+    rsge: {
+      auth: (data: { username: string; password: string; pin?: string; pin_token?: string }) =>
+        withFallback(() => request<RsgeAuthResult>('/accounting/rsge/auth', { method: 'POST', body: JSON.stringify(data) }), () => localApi.accounting.rsge.auth(data)),
+      checkVat: (tin: string) =>
+        withFallback(() => request<VatCheckResult>('/accounting/rsge/check-vat', { method: 'POST', body: JSON.stringify({ tin }) }), () => localApi.accounting.rsge.checkVat(tin)),
+    },
+  },
 }
 
 export interface DashboardData {
@@ -212,4 +231,48 @@ export interface StockMovement {
   created_at: string
   product_name?: string
   warehouse_name?: string
+}
+
+export interface TaxInvoice {
+  id: number
+  number?: string
+  deal_id?: number
+  company_id?: number
+  tin_seller: string
+  tin_buyer: string
+  buyer_name?: string
+  amount: number
+  vat_rate: number
+  vat_amount: number
+  total_amount: number
+  status: string
+  rsge_invoice_id?: number
+  rsge_transaction_id?: string
+  description?: string
+  operation_date?: string
+  created_at: string
+  synced_at?: string
+  deal_title?: string
+  company_name?: string
+}
+
+export interface RsgeSettings {
+  id: number
+  company_tin: string
+  username: string
+  is_connected: boolean
+  last_sync?: string
+}
+
+export interface RsgeAuthResult {
+  success: boolean
+  needs_pin?: boolean
+  pin_token?: string
+  message?: string
+}
+
+export interface VatCheckResult {
+  tin: string
+  is_vat_payer: boolean
+  org_name?: string
 }

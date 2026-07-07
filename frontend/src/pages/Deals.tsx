@@ -2,16 +2,25 @@ import { useEffect, useState } from 'react'
 import { Plus } from 'lucide-react'
 import { api, Deal } from '../api/client'
 import Modal from '../components/Modal'
+import Page, { Loading } from '../components/Page'
 import { DEAL_STAGES, formatMoney } from '../utils'
 
 const STAGE_ORDER = ['new', 'preparation', 'proposal', 'negotiation', 'won', 'lost']
 
 export default function Deals() {
   const [deals, setDeals] = useState<Deal[]>([])
+  const [loading, setLoading] = useState(true)
   const [modalOpen, setModalOpen] = useState(false)
   const [form, setForm] = useState({ title: '', amount: 0, stage: 'new' })
 
-  const load = () => api.deals.list().then(setDeals).catch(console.error)
+  const load = async () => {
+    setLoading(true)
+    try {
+      setDeals(await api.deals.list())
+    } finally {
+      setLoading(false)
+    }
+  }
   useEffect(() => { load() }, [])
 
   const handleCreate = async (e: React.FormEvent) => {
@@ -32,23 +41,25 @@ export default function Deals() {
     return acc
   }, {})
 
+  if (loading) return <Loading />
+
   return (
-    <div className="p-8">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Сделки</h1>
+    <Page
+      title="Сделки"
+      action={
         <button className="btn-primary flex items-center gap-2" onClick={() => setModalOpen(true)}>
           <Plus size={18} /> Новая сделка
         </button>
-      </div>
-
-      <div className="flex gap-4 overflow-x-auto pb-4">
+      }
+    >
+      <div className="flex gap-3 overflow-x-auto pb-4 -mx-4 px-4 md:mx-0 md:px-0">
         {STAGE_ORDER.map((stage) => {
           const info = DEAL_STAGES[stage]
           const stageDeals = dealsByStage[stage] || []
           const total = stageDeals.reduce((s, d) => s + d.amount, 0)
 
           return (
-            <div key={stage} className="min-w-[280px] flex-shrink-0">
+            <div key={stage} className="min-w-[260px] flex-shrink-0">
               <div className="flex items-center justify-between mb-3">
                 <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${info.color}`}>
                   {info.label}
@@ -57,7 +68,7 @@ export default function Deals() {
                   {stageDeals.length} · {formatMoney(total)}
                 </span>
               </div>
-              <div className="space-y-3 min-h-[200px]">
+              <div className="space-y-3 min-h-[120px]">
                 {stageDeals.map((deal) => (
                   <div key={deal.id} className="card p-4 hover:shadow-md transition-shadow">
                     <h3 className="font-medium text-sm mb-2">{deal.title}</h3>
@@ -67,13 +78,10 @@ export default function Deals() {
                     {deal.company_name && (
                       <div className="text-xs text-gray-500 mb-1">{deal.company_name}</div>
                     )}
-                    {deal.contact_name && (
-                      <div className="text-xs text-gray-400">{deal.contact_name}</div>
-                    )}
                     <select
                       value={deal.stage}
                       onChange={(e) => handleStageChange(deal.id, e.target.value)}
-                      className="mt-3 w-full text-xs border rounded-lg px-2 py-1.5 bg-gray-50"
+                      className="mt-2 w-full text-xs border rounded-lg px-2 py-1.5 bg-gray-50"
                     >
                       {STAGE_ORDER.map((s) => (
                         <option key={s} value={s}>{DEAL_STAGES[s].label}</option>
@@ -97,20 +105,12 @@ export default function Deals() {
             <label className="label">Сумма</label>
             <input className="input" type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: +e.target.value })} />
           </div>
-          <div>
-            <label className="label">Стадия</label>
-            <select className="input" value={form.stage} onChange={(e) => setForm({ ...form, stage: e.target.value })}>
-              {STAGE_ORDER.map((s) => (
-                <option key={s} value={s}>{DEAL_STAGES[s].label}</option>
-              ))}
-            </select>
-          </div>
           <div className="flex justify-end gap-3 pt-2">
             <button type="button" className="btn-secondary" onClick={() => setModalOpen(false)}>Отмена</button>
             <button type="submit" className="btn-primary">Создать</button>
           </div>
         </form>
       </Modal>
-    </div>
+    </Page>
   )
 }
