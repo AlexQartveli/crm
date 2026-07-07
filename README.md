@@ -43,7 +43,7 @@
 ### Шаг 3. Подключите backend на Render (один раз)
 
 1. Зайдите на [render.com](https://render.com) → войдите через GitHub
-2. **New → Blueprint** → выберите репозиторий `AlexQartveli/-`
+2. **New → Blueprint** → выберите репозиторий `AlexQartveli/bitrix-crm`
 3. Render подхватит `render.yaml` и задеплоит API
 
 ### Готово — открывайте с телефона

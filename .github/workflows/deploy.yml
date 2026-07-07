@@ -27,7 +27,7 @@ jobs:
       - name: Build frontend
         working-directory: frontend
         env:
-          VITE_BASE: /-/
+          VITE_BASE: /bitrix-crm/
           VITE_API_URL: https://bitrix-crm-api.onrender.com/api
         run: npm run build
 
