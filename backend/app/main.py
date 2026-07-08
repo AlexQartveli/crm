@@ -2,13 +2,16 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import func
 
-from app.database import Base, SessionLocal, engine
+from app.database import Base, SessionLocal, engine, migrate_schema
 from app.models.crm import Company, Contact, Deal, Lead
+from app.models.messaging import Conversation
 from app.models.warehouse import Product, Stock, Warehouse
-from app.routers import accounting, crm, warehouse
+from app.routers import accounting, crm, messaging, warehouse
 from app.seed import seed_database
+from app.seed_messaging import seed_messaging
 
 Base.metadata.create_all(bind=engine)
+migrate_schema()
 
 app = FastAPI(
     title="Kinetix",
@@ -27,6 +30,7 @@ app.add_middleware(
 app.include_router(crm.router, prefix="/api")
 app.include_router(warehouse.router, prefix="/api")
 app.include_router(accounting.router, prefix="/api")
+app.include_router(messaging.router, prefix="/api")
 
 
 @app.on_event("startup")
@@ -34,6 +38,7 @@ def on_startup():
     db = SessionLocal()
     try:
         seed_database(db)
+        seed_messaging(db)
     finally:
         db.close()
 
@@ -74,6 +79,11 @@ def dashboard():
             or 0
         )
 
+        unread_messages = (
+            db.query(func.coalesce(func.sum(Conversation.unread_count), 0)).scalar() or 0
+        )
+        conversations_count = db.query(func.count(Conversation.id)).scalar() or 0
+
         return {
             "leads": leads_count,
             "deals": deals_count,
@@ -84,6 +94,8 @@ def dashboard():
             "won_amount": won_amount,
             "pipeline_amount": pipeline_amount,
             "deals_by_stage": {stage: count for stage, count in deals_by_stage},
+            "unread_messages": unread_messages,
+            "conversations": conversations_count,
         }
     finally:
         db.close()

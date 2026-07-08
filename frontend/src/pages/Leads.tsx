@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Plus, Trash2 } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Plus, Trash2, MessageCircle } from 'lucide-react'
 import { api, Lead } from '../api/client'
 import Modal from '../components/Modal'
 import { useI18n } from '../i18n/I18nContext'
@@ -11,8 +12,20 @@ export default function Leads() {
   const [leads, setLeads] = useState<Lead[]>([])
   const [modalOpen, setModalOpen] = useState(false)
   const [form, setForm] = useState({ title: '', name: '', phone: '', email: '', source: '', amount: 0 })
+  const [convCounts, setConvCounts] = useState<Record<number, number>>({})
 
-  const load = () => api.leads.list().then(setLeads).catch(console.error)
+  const load = () => {
+    Promise.all([api.leads.list(), api.messaging.conversations.list()])
+      .then(([leads, convos]) => {
+        setLeads(leads)
+        const counts: Record<number, number> = {}
+        for (const conv of convos) {
+          if (conv.lead_id) counts[conv.lead_id] = (counts[conv.lead_id] || 0) + 1
+        }
+        setConvCounts(counts)
+      })
+      .catch(console.error)
+  }
   useEffect(() => { load() }, [])
 
   const handleCreate = async (e: React.FormEvent) => {
@@ -54,6 +67,7 @@ export default function Leads() {
               <th className="text-left p-4 font-medium">{t.common.status}</th>
               <th className="text-right p-4 font-medium">{t.common.amount}</th>
               <th className="text-left p-4 font-medium">{t.common.date}</th>
+              <th className="text-left p-4 font-medium">{t.leads.messengerDialogs}</th>
               <th className="p-4"></th>
             </tr>
           </thead>
@@ -77,6 +91,14 @@ export default function Leads() {
                 </td>
                 <td className="p-4 text-right">{formatMoney(lead.amount)}</td>
                 <td className="p-4 text-app-text-muted">{formatDate(lead.created_at)}</td>
+                <td className="p-4">
+                  {convCounts[lead.id] ? (
+                    <Link to="/inbox" className="inline-flex items-center gap-1 text-kinetix-600 dark:text-kinetix-400">
+                      <MessageCircle size={14} />
+                      {convCounts[lead.id]}
+                    </Link>
+                  ) : t.common.dash}
+                </td>
                 <td className="p-4">
                   <button onClick={() => handleDelete(lead.id)} className="text-red-400 hover:text-red-500 dark:text-red-400 dark:hover:text-red-300">
                     <Trash2 size={16} />

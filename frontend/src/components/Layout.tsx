@@ -13,6 +13,8 @@ import {
   X,
   Calculator,
   Settings,
+  MessageCircle,
+  Plug,
 } from 'lucide-react'
 import { useI18n } from '../i18n/I18nContext'
 import HeaderControls from './HeaderControls'
@@ -29,6 +31,8 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
     { to: '/products', icon: Package, label: t.nav.products },
     { to: '/warehouse', icon: Warehouse, label: t.nav.warehouse },
     { to: '/movements', icon: ArrowLeftRight, label: t.nav.movements },
+    { to: '/inbox', icon: MessageCircle, label: t.nav.inbox },
+    { to: '/integrations', icon: Plug, label: t.nav.integrations },
     { to: '/accounting', icon: Calculator, label: t.nav.accounting },
     { to: '/accounting/settings', icon: Settings, label: t.nav.rsge },
   ]

@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.crm import Company, Contact, Deal, DealProduct, Lead
+from app.services.messaging_sync import sync_by_contact, sync_by_lead
 from app.schemas.crm import (
     CompanyCreate,
     CompanyResponse,
@@ -33,6 +34,8 @@ def create_lead(data: LeadCreate, db: Session = Depends(get_db)):
     db.add(lead)
     db.commit()
     db.refresh(lead)
+    sync_by_lead(db, lead.id)
+    db.commit()
     return lead
 
 
@@ -53,6 +56,8 @@ def update_lead(lead_id: int, data: LeadUpdate, db: Session = Depends(get_db)):
         setattr(lead, key, value)
     db.commit()
     db.refresh(lead)
+    sync_by_lead(db, lead.id)
+    db.commit()
     return lead
 
 
@@ -123,6 +128,8 @@ def create_contact(data: ContactCreate, db: Session = Depends(get_db)):
     db.add(contact)
     db.commit()
     db.refresh(contact)
+    sync_by_contact(db, contact.id)
+    db.commit()
     return contact
 
 
@@ -143,6 +150,8 @@ def update_contact(contact_id: int, data: ContactUpdate, db: Session = Depends(g
         setattr(contact, key, value)
     db.commit()
     db.refresh(contact)
+    sync_by_contact(db, contact.id)
+    db.commit()
     return contact
 
 

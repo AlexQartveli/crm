@@ -115,6 +115,70 @@ export const api = {
         withFallback(() => request<VatCheckResult>('/accounting/rsge/check-vat', { method: 'POST', body: JSON.stringify({ tin }) }), () => localApi.accounting.rsge.checkVat(tin)),
     },
   },
+
+  messaging: {
+    conversations: {
+      list: (params?: { channel?: string; contact_id?: number; lead_id?: number }) => {
+        const qs = new URLSearchParams()
+        if (params?.channel) qs.set('channel', params.channel)
+        if (params?.contact_id) qs.set('contact_id', String(params.contact_id))
+        if (params?.lead_id) qs.set('lead_id', String(params.lead_id))
+        const q = qs.toString()
+        return withFallback(
+          () => request<Conversation[]>(`/messaging/conversations${q ? `?${q}` : ''}`),
+          () => localApi.messaging.conversations.list(params?.channel, params?.contact_id, params?.lead_id),
+        )
+      },
+      get: (id: number) => withFallback(
+        () => request<Conversation>(`/messaging/conversations/${id}`),
+        () => localApi.messaging.conversations.get(id),
+      ),
+      messages: (id: number) => withFallback(
+        () => request<Message[]>(`/messaging/conversations/${id}/messages`),
+        () => localApi.messaging.conversations.messages(id),
+      ),
+      send: (id: number, body: string) => withFallback(
+        () => request<Message>(`/messaging/conversations/${id}/messages`, { method: 'POST', body: JSON.stringify({ body }) }),
+        () => localApi.messaging.conversations.send(id, body),
+      ),
+      markRead: (id: number) => withFallback(
+        () => request<Conversation>(`/messaging/conversations/${id}/read`, { method: 'PATCH' }),
+        () => localApi.messaging.conversations.markRead(id),
+      ),
+      link: (id: number, data: { contact_id?: number; lead_id?: number }) => withFallback(
+        () => request<Conversation>(`/messaging/conversations/${id}/link`, { method: 'PATCH', body: JSON.stringify(data) }),
+        () => localApi.messaging.conversations.link(id, data),
+      ),
+      convertContact: (id: number) => withFallback(
+        () => request<Conversation>(`/messaging/conversations/${id}/convert-contact`, { method: 'POST' }),
+        () => localApi.messaging.conversations.convertContact(id),
+      ),
+    },
+    calls: {
+      list: (channel?: string) => withFallback(
+        () => request<CallLog[]>(`/messaging/calls${channel ? `?channel=${channel}` : ''}`),
+        () => localApi.messaging.calls.list(channel),
+      ),
+    },
+    settings: {
+      get: () => withFallback(
+        () => request<MessagingSettings>('/messaging/settings'),
+        () => localApi.messaging.settings.get(),
+      ),
+      save: (data: Partial<MessagingSettings> & { whatsapp_token?: string; messenger_page_token?: string; telegram_bot_token?: string }) => withFallback(
+        () => request<MessagingSettings>('/messaging/settings', { method: 'POST', body: JSON.stringify(data) }),
+        () => localApi.messaging.settings.save(data),
+      ),
+    },
+    sync: (channel: 'whatsapp' | 'messenger' | 'telegram') => withFallback(
+      () => request<SyncResult>(`/messaging/sync/${channel}`, { method: 'POST' }),
+      () => localApi.messaging.sync(channel),
+    ),
+    syncCrm: () => withFallback(
+      () => request<CrmSyncResult>('/messaging/sync-crm', { method: 'POST' }),
+      () => localApi.messaging.syncCrm(),
+    ),
+  },
 }
 
 export interface DashboardData {
@@ -127,6 +191,8 @@ export interface DashboardData {
   won_amount: number
   pipeline_amount: number
   deals_by_stage: Record<string, number>
+  unread_messages?: number
+  conversations?: number
 }
 
 export interface Lead {
@@ -275,4 +341,80 @@ export interface VatCheckResult {
   tin: string
   is_vat_payer: boolean
   org_name?: string
+}
+
+export interface Conversation {
+  id: number
+  channel: string
+  external_id: string
+  contact_name?: string
+  phone?: string
+  contact_id?: number
+  lead_id?: number
+  unread_count: number
+  last_message_at?: string
+  last_message_preview?: string
+  created_at: string
+  contact_name_linked?: string
+  lead_title?: string
+  company_name?: string
+  lead_status?: string
+}
+
+export interface Message {
+  id: number
+  conversation_id: number
+  direction: string
+  body: string
+  message_type: string
+  external_id?: string
+  status: string
+  created_at: string
+}
+
+export interface CallLog {
+  id: number
+  channel: string
+  external_id: string
+  conversation_id?: number
+  direction: string
+  status: string
+  duration_seconds?: number
+  contact_name?: string
+  phone?: string
+  contact_id?: number
+  lead_id?: number
+  started_at: string
+}
+
+export interface MessagingSettings {
+  id: number
+  whatsapp_phone_number_id?: string
+  whatsapp_verify_token?: string
+  messenger_page_id?: string
+  messenger_verify_token?: string
+  telegram_webhook_secret?: string
+  whatsapp_connected: boolean
+  messenger_connected: boolean
+  telegram_connected: boolean
+  whatsapp_configured?: boolean
+  messenger_configured?: boolean
+  telegram_configured?: boolean
+  webhook_whatsapp_url?: string
+  webhook_messenger_url?: string
+  webhook_telegram_url?: string
+}
+
+export interface SyncResult {
+  channel: string
+  success: boolean
+  message: string
+}
+
+export interface CrmSyncResult {
+  conversations: number
+  linked_contacts: number
+  linked_leads: number
+  created_leads: number
+  message: string
 }

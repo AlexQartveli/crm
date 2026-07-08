@@ -1,4 +1,5 @@
 from app.models.crm import Company, Contact, Deal, DealProduct, Lead
+from app.models.messaging import CallLog, Conversation, Message, MessagingSettings
 from app.models.warehouse import Product, Stock, StockMovement, Warehouse
 
 __all__ = [
@@ -7,6 +8,10 @@ __all__ = [
     "Company",
     "Deal",
     "DealProduct",
+    "CallLog",
+    "Conversation",
+    "Message",
+    "MessagingSettings",
     "Product",
     "Warehouse",
     "Stock",

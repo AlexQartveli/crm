@@ -1,10 +1,14 @@
 import type {
+  CallLog,
   Company,
   Contact,
+  Conversation,
   DashboardData,
   Deal,
   DealProduct,
   Lead,
+  Message,
+  MessagingSettings,
   Product,
   RsgeAuthResult,
   RsgeSettings,
@@ -29,6 +33,10 @@ interface Store {
   movements: StockMovement[]
   taxInvoices: TaxInvoice[]
   rsgeSettings: RsgeSettings | null
+  conversations: Conversation[]
+  messages: Message[]
+  callLogs: CallLog[]
+  messagingSettings: MessagingSettings | null
   nextId: number
 }
 
@@ -107,6 +115,39 @@ function seed(): Store {
       },
     ],
     rsgeSettings: { id: 1, company_tin: '123456789', username: 'demo', is_connected: true, last_sync: t },
+    conversations: [
+      {
+        id: 1, channel: 'whatsapp', external_id: '79001234567', contact_name: 'Георгий Беридзе',
+        phone: '+79001234567', unread_count: 2, last_message_at: t, last_message_preview: 'Нужны 10 единиц ноутбуков',
+        created_at: t,
+      },
+      {
+        id: 2, channel: 'messenger', external_id: '1234567890123456', contact_name: 'Nino Kvlividze',
+        unread_count: 1, last_message_at: t, last_message_preview: 'Можно узнать цену на мониторы?',
+        created_at: t,
+      },
+    ],
+    messages: [
+      { id: 1, conversation_id: 1, direction: 'inbound', body: 'Здравствуйте, интересует поставка оборудования', message_type: 'text', status: 'received', created_at: t },
+      { id: 2, conversation_id: 1, direction: 'outbound', body: 'Добрый день! Подскажите, какое оборудование вас интересует?', message_type: 'text', status: 'delivered', created_at: t },
+      { id: 3, conversation_id: 1, direction: 'inbound', body: 'Нужны 10 единиц ноутбуков', message_type: 'text', status: 'received', created_at: t },
+      { id: 4, conversation_id: 2, direction: 'inbound', body: 'Можно узнать цену на мониторы?', message_type: 'text', status: 'received', created_at: t },
+    ],
+    callLogs: [
+      { id: 1, channel: 'whatsapp', external_id: '79009876543', conversation_id: 1, direction: 'inbound', status: 'missed', contact_name: 'Георгий Беридзе', phone: '+79009876543', started_at: t },
+    ],
+    messagingSettings: {
+      id: 1,
+      whatsapp_verify_token: 'kinetix-verify',
+      messenger_verify_token: 'kinetix-verify',
+      whatsapp_connected: false,
+      messenger_connected: false,
+      webhook_whatsapp_url: '/api/messaging/webhooks/whatsapp',
+      webhook_messenger_url: '/api/messaging/webhooks/messenger',
+      webhook_telegram_url: '/api/messaging/webhooks/telegram',
+      telegram_connected: false,
+      telegram_configured: false,
+    },
   }
 }
 
@@ -137,6 +178,10 @@ function load(): Store {
       movements: parsed.movements ?? [],
       taxInvoices: parsed.taxInvoices ?? [],
       rsgeSettings: parsed.rsgeSettings ?? null,
+      conversations: parsed.conversations ?? [],
+      messages: parsed.messages ?? [],
+      callLogs: parsed.callLogs ?? [],
+      messagingSettings: parsed.messagingSettings ?? null,
       nextId: parsed.nextId ?? 100,
     } as Store
   } catch {
@@ -153,6 +198,71 @@ function save(store: Store) {
 function nextId(store: Store) {
   store.nextId += 1
   return store.nextId
+}
+
+function normalizePhone(phone: string | null | undefined): string | null {
+  if (!phone) return null
+  const digits = phone.replace(/\D/g, '')
+  if (digits.length >= 10) return digits.slice(-10)
+  return digits || null
+}
+
+function enrichConversation(store: Store, conv: Conversation): Conversation {
+  const contact = conv.contact_id ? store.contacts.find((c) => c.id === conv.contact_id) : undefined
+  const lead = conv.lead_id ? store.leads.find((l) => l.id === conv.lead_id) : undefined
+  const company = contact?.company_id ? store.companies.find((c) => c.id === contact.company_id) : undefined
+  return {
+    ...conv,
+    contact_name_linked: contact?.name,
+    lead_title: lead?.title,
+    company_name: company?.name,
+    lead_status: lead?.status,
+  }
+}
+
+function syncConversationLocal(s: Store, conv: Conversation): void {
+  const phone = normalizePhone(conv.phone)
+  if (phone) {
+    const contact = s.contacts.find((c) => normalizePhone(c.phone) === phone)
+    if (contact) {
+      conv.contact_id = contact.id
+      if (!conv.contact_name) conv.contact_name = contact.name
+    }
+    let lead = s.leads.find((l) => normalizePhone(l.phone) === phone)
+    if (!lead && conv.contact_name) {
+      const name = conv.contact_name.trim().toLowerCase()
+      lead = s.leads.find((l) => l.name?.trim().toLowerCase() === name)
+    }
+    if (lead) {
+      conv.lead_id = lead.id
+    } else if (!contact) {
+      const source = conv.channel === 'whatsapp' ? 'WhatsApp'
+        : conv.channel === 'telegram' ? 'Telegram' : 'Facebook Messenger'
+      const name = conv.contact_name || conv.phone || conv.external_id || 'Неизвестный'
+      const newLead: Lead = {
+        id: nextId(s),
+        title: `Входящий ${source}: ${name}`,
+        name: conv.contact_name,
+        phone: conv.phone,
+        source,
+        status: 'new',
+        amount: 0,
+        comment: `Автоматически создан из ${source}`,
+        created_at: now(),
+        updated_at: now(),
+      }
+      s.leads.unshift(newLead)
+      conv.lead_id = newLead.id
+    }
+  }
+  if (phone) {
+    for (const c of s.conversations) {
+      if (normalizePhone(c.phone) === phone) {
+        if (conv.contact_id) c.contact_id = conv.contact_id
+        if (conv.lead_id) c.lead_id = conv.lead_id
+      }
+    }
+  }
 }
 
 function enrichDeal(store: Store, deal: Deal): Deal {
@@ -190,6 +300,8 @@ export const localApi = {
       won_amount: s.deals.filter((d) => d.stage === 'won').reduce((sum, d) => sum + d.amount, 0),
       pipeline_amount: s.deals.filter((d) => !['won', 'lost'].includes(d.stage)).reduce((sum, d) => sum + d.amount, 0),
       deals_by_stage: dealsByStage,
+      unread_messages: s.conversations.reduce((sum, c) => sum + c.unread_count, 0),
+      conversations: s.conversations.length,
     }
   },
 
@@ -552,6 +664,167 @@ export const localApi = {
         is_vat_payer: tin.length >= 9,
         org_name: `სატესტო კომპანია ${tin.slice(0, 4)}`,
       }),
+    },
+  },
+
+  messaging: {
+    conversations: {
+      list: (channel?: string, contact_id?: number, lead_id?: number) => {
+        const s = load()
+        let list = [...s.conversations].sort((a, b) =>
+          (b.last_message_at || '').localeCompare(a.last_message_at || ''))
+        if (channel) list = list.filter((c) => c.channel === channel)
+        if (contact_id) list = list.filter((c) => c.contact_id === contact_id)
+        if (lead_id) list = list.filter((c) => c.lead_id === lead_id)
+        return list.map((c) => enrichConversation(s, c))
+      },
+      get: (id: number) => {
+        const s = load()
+        const conv = s.conversations.find((c) => c.id === id)
+        if (!conv) throw new Error('Диалог не найден')
+        return enrichConversation(s, conv)
+      },
+      messages: (id: number) =>
+        load().messages.filter((m) => m.conversation_id === id).sort((a, b) => a.created_at.localeCompare(b.created_at)),
+      send: (id: number, body: string) => {
+        const s = load()
+        const msg: Message = {
+          id: nextId(s),
+          conversation_id: id,
+          direction: 'outbound',
+          body,
+          message_type: 'text',
+          status: 'sent',
+          created_at: now(),
+        }
+        s.messages.push(msg)
+        const conv = s.conversations.find((c) => c.id === id)
+        if (conv) {
+          conv.last_message_at = now()
+          conv.last_message_preview = body.slice(0, 200)
+        }
+        save(s)
+        return msg
+      },
+      markRead: (id: number) => {
+        const s = load()
+        const conv = s.conversations.find((c) => c.id === id)
+        if (!conv) throw new Error('Диалог не найден')
+        conv.unread_count = 0
+        save(s)
+        return enrichConversation(s, conv)
+      },
+      link: (id: number, data: { contact_id?: number; lead_id?: number }) => {
+        const s = load()
+        const conv = s.conversations.find((c) => c.id === id)
+        if (!conv) throw new Error('Диалог не найден')
+        if (data.contact_id !== undefined) conv.contact_id = data.contact_id || undefined
+        if (data.lead_id !== undefined) conv.lead_id = data.lead_id || undefined
+        syncConversationLocal(s, conv)
+        save(s)
+        return enrichConversation(s, conv)
+      },
+      convertContact: (id: number) => {
+        const s = load()
+        const conv = s.conversations.find((c) => c.id === id)
+        if (!conv) throw new Error('Диалог не найден')
+        if (!conv.contact_id) {
+          const contact: Contact = {
+            id: nextId(s),
+            name: conv.contact_name || conv.phone || `Клиент ${conv.external_id}`,
+            phone: conv.phone,
+            created_at: now(),
+          }
+          s.contacts.unshift(contact)
+          conv.contact_id = contact.id
+        }
+        if (conv.lead_id) {
+          const lead = s.leads.find((l) => l.id === conv.lead_id)
+          if (lead) lead.status = 'converted'
+        }
+        syncConversationLocal(s, conv)
+        save(s)
+        return enrichConversation(s, conv)
+      },
+    },
+    calls: {
+      list: (channel?: string) => {
+        let list = load().callLogs.sort((a, b) => b.started_at.localeCompare(a.started_at))
+        if (channel) list = list.filter((c) => c.channel === channel)
+        return list
+      },
+    },
+    settings: {
+      get: () => load().messagingSettings || {
+        id: 1,
+        whatsapp_connected: false,
+        messenger_connected: false,
+        telegram_connected: false,
+        webhook_whatsapp_url: '/api/messaging/webhooks/whatsapp',
+        webhook_messenger_url: '/api/messaging/webhooks/messenger',
+        webhook_telegram_url: '/api/messaging/webhooks/telegram',
+      },
+      save: (data: Partial<MessagingSettings> & { whatsapp_token?: string; messenger_page_token?: string; telegram_bot_token?: string }) => {
+        const s = load()
+        s.messagingSettings = {
+          id: 1,
+          whatsapp_phone_number_id: data.whatsapp_phone_number_id,
+          whatsapp_verify_token: data.whatsapp_verify_token,
+          messenger_page_id: data.messenger_page_id,
+          messenger_verify_token: data.messenger_verify_token,
+          telegram_webhook_secret: data.telegram_webhook_secret,
+          whatsapp_connected: !!(data.whatsapp_phone_number_id),
+          messenger_connected: !!(data.messenger_page_id),
+          telegram_connected: s.messagingSettings?.telegram_connected || false,
+          webhook_whatsapp_url: '/api/messaging/webhooks/whatsapp',
+          webhook_messenger_url: '/api/messaging/webhooks/messenger',
+          webhook_telegram_url: '/api/messaging/webhooks/telegram',
+        }
+        save(s)
+        return s.messagingSettings!
+      },
+    },
+    sync: (channel: 'whatsapp' | 'messenger' | 'telegram') => {
+      const s = load()
+      if (!s.messagingSettings) {
+        return { channel, success: false, message: 'Сначала сохраните настройки' }
+      }
+      if (channel === 'whatsapp') s.messagingSettings.whatsapp_connected = true
+      if (channel === 'messenger') s.messagingSettings.messenger_connected = true
+      if (channel === 'telegram') s.messagingSettings.telegram_connected = true
+      save(s)
+      return { channel, success: true, message: `Синхронизация ${channel} (демо)` }
+    },
+    syncCrm: () => {
+      const s = load()
+      for (const conv of s.conversations) {
+        syncConversationLocal(s, conv)
+      }
+      for (const contact of s.contacts) {
+        for (const conv of s.conversations) {
+          if (conv.contact_id === contact.id || (contact.phone && normalizePhone(conv.phone) === normalizePhone(contact.phone))) {
+            conv.contact_id = contact.id
+            syncConversationLocal(s, conv)
+          }
+        }
+      }
+      for (const lead of s.leads) {
+        for (const conv of s.conversations) {
+          if (conv.lead_id === lead.id || (lead.phone && normalizePhone(conv.phone) === normalizePhone(lead.phone))) {
+            conv.lead_id = lead.id
+            syncConversationLocal(s, conv)
+          }
+        }
+      }
+      save(s)
+      const messengerSources = ['WhatsApp', 'Facebook Messenger', 'Telegram']
+      return {
+        conversations: s.conversations.length,
+        linked_contacts: s.conversations.filter((c) => c.contact_id).length,
+        linked_leads: s.conversations.filter((c) => c.lead_id).length,
+        created_leads: s.leads.filter((l) => messengerSources.includes(l.source || '')).length,
+        message: `Синхронизировано: ${s.conversations.length} диалогов`,
+      }
     },
   },
 }

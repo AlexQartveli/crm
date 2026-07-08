@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Plus } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Plus, MessageCircle } from 'lucide-react'
 import { api, Contact, Company } from '../api/client'
 import Modal from '../components/Modal'
 import CardActions, { RowActions } from '../components/CardActions'
@@ -16,13 +17,23 @@ export default function Contacts() {
   const [modalOpen, setModalOpen] = useState(false)
   const [editingId, setEditingId] = useState<number | null>(null)
   const [form, setForm] = useState(emptyForm)
+  const [convCounts, setConvCounts] = useState<Record<number, number>>({})
 
   const load = async () => {
     setLoading(true)
     try {
-      const [c, co] = await Promise.all([api.contacts.list(), api.companies.list()])
+      const [c, co, convos] = await Promise.all([
+        api.contacts.list(),
+        api.companies.list(),
+        api.messaging.conversations.list(),
+      ])
       setContacts(c)
       setCompanies(co)
+      const counts: Record<number, number> = {}
+      for (const conv of convos) {
+        if (conv.contact_id) counts[conv.contact_id] = (counts[conv.contact_id] || 0) + 1
+      }
+      setConvCounts(counts)
     } finally {
       setLoading(false)
     }
@@ -74,6 +85,12 @@ export default function Contacts() {
                   {c.phone && <p>{c.phone}</p>}
                   {c.email && <p>{c.email}</p>}
                 </div>
+                {convCounts[c.id] > 0 && (
+                  <Link to="/inbox" className="inline-flex items-center gap-1 mt-2 text-sm text-kinetix-600 dark:text-kinetix-400">
+                    <MessageCircle size={14} />
+                    {convCounts[c.id]} {t.inbox.conversationsCount}
+                  </Link>
+                )}
                 <CardActions onEdit={() => openEdit(c)} onDelete={() => handleDelete(c.id)} />
               </div>
             ))}
@@ -88,6 +105,7 @@ export default function Contacts() {
                     <th className="text-left p-3 font-medium">{t.common.company}</th>
                     <th className="text-left p-3 font-medium">{t.common.phone}</th>
                     <th className="text-left p-3 font-medium">{t.common.email}</th>
+                    <th className="text-left p-3 font-medium">{t.contacts.messengerDialogs}</th>
                     <th className="p-3"></th>
                   </tr>
                 </thead>
@@ -99,6 +117,14 @@ export default function Contacts() {
                       <td className="p-3">{companyName(c.company_id)}</td>
                       <td className="p-3">{c.phone || t.common.dash}</td>
                       <td className="p-3">{c.email || t.common.dash}</td>
+                      <td className="p-3">
+                        {convCounts[c.id] ? (
+                          <Link to="/inbox" className="inline-flex items-center gap-1 text-kinetix-600 dark:text-kinetix-400">
+                            <MessageCircle size={14} />
+                            {convCounts[c.id]}
+                          </Link>
+                        ) : t.common.dash}
+                      </td>
                       <td className="p-3"><RowActions onEdit={() => openEdit(c)} onDelete={() => handleDelete(c.id)} /></td>
                     </tr>
                   ))}
