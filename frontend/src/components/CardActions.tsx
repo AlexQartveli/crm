@@ -9,17 +9,17 @@ interface CardActionsProps {
 export default function CardActions({ onEdit, onDelete }: CardActionsProps) {
   const { t } = useI18n()
   return (
-    <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100">
+    <div className="flex gap-2 mt-3 pt-3 border-t border-app-border">
       <button
         onClick={onEdit}
-        className="flex-1 flex items-center justify-center gap-1.5 py-2 text-sm font-medium text-kinetix-600 bg-kinetix-50 hover:bg-kinetix-100 rounded-lg transition-colors"
+        className="flex-1 flex items-center justify-center gap-1.5 py-2 text-sm font-medium rounded-lg transition-colors action-edit"
       >
         <Pencil size={15} />
         {t.common.edit}
       </button>
       <button
         onClick={onDelete}
-        className="flex items-center justify-center gap-1.5 px-3 py-2 text-sm text-red-500 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+        className="flex items-center justify-center gap-1.5 px-3 py-2 text-sm rounded-lg transition-colors action-delete"
         title={t.common.delete}
       >
         <Trash2 size={15} />
@@ -32,10 +32,10 @@ export function RowActions({ onEdit, onDelete }: CardActionsProps) {
   const { t } = useI18n()
   return (
     <div className="flex gap-1">
-      <button onClick={onEdit} className="p-1.5 text-kinetix-600 hover:bg-kinetix-50 rounded" title={t.common.edit}>
+      <button onClick={onEdit} className="p-1.5 rounded action-edit-icon" title={t.common.edit}>
         <Pencil size={16} />
       </button>
-      <button onClick={onDelete} className="p-1.5 text-red-400 hover:bg-red-50 rounded" title={t.common.delete}>
+      <button onClick={onDelete} className="p-1.5 rounded action-delete-icon" title={t.common.delete}>
         <Trash2 size={16} />
       </button>
     </div>

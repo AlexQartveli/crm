@@ -42,17 +42,17 @@ export default function Movements() {
 
   const typeColor = (type: string) => {
     switch (type) {
-      case 'receipt': return 'bg-green-100 text-green-800'
-      case 'expense': return 'bg-red-100 text-red-800'
-      case 'transfer': return 'bg-blue-100 text-blue-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case 'receipt': return 'bg-green-100 text-green-800 dark:bg-green-950/60 dark:text-green-300'
+      case 'expense': return 'bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-300'
+      case 'transfer': return 'bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300'
+      default: return 'bg-gray-100 text-gray-800 dark:bg-slate-700 dark:text-slate-300'
     }
   }
 
   return (
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">{t.movements.title}</h1>
+        <h1 className="page-title">{t.movements.title}</h1>
         <button className="btn-primary flex items-center gap-2" onClick={() => setModalOpen(true)}>
           <Plus size={18} /> {t.common.newMovement}
         </button>
@@ -60,20 +60,20 @@ export default function Movements() {
 
       <div className="card overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b">
+          <thead>
             <tr>
-              <th className="text-left p-4 font-medium text-gray-600">{t.common.date}</th>
-              <th className="text-left p-4 font-medium text-gray-600">{t.common.type}</th>
-              <th className="text-left p-4 font-medium text-gray-600">{t.common.product}</th>
-              <th className="text-left p-4 font-medium text-gray-600">{t.common.warehouse}</th>
-              <th className="text-right p-4 font-medium text-gray-600">{t.common.qty}</th>
-              <th className="text-left p-4 font-medium text-gray-600">{t.common.comment}</th>
+              <th className="text-left p-4 font-medium">{t.common.date}</th>
+              <th className="text-left p-4 font-medium">{t.common.type}</th>
+              <th className="text-left p-4 font-medium">{t.common.product}</th>
+              <th className="text-left p-4 font-medium">{t.common.warehouse}</th>
+              <th className="text-right p-4 font-medium">{t.common.qty}</th>
+              <th className="text-left p-4 font-medium">{t.common.comment}</th>
             </tr>
           </thead>
           <tbody>
             {movements.map((m) => (
-              <tr key={m.id} className="border-b hover:bg-gray-50">
-                <td className="p-4 text-gray-500">{formatDate(m.created_at)}</td>
+              <tr key={m.id}>
+                <td className="p-4 text-app-text-muted">{formatDate(m.created_at)}</td>
                 <td className="p-4">
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${typeColor(m.movement_type)}`}>
                     {movementTypes[m.movement_type as keyof typeof movementTypes] ?? m.movement_type}
@@ -82,12 +82,12 @@ export default function Movements() {
                 <td className="p-4 font-medium">{m.product_name}</td>
                 <td className="p-4">{m.warehouse_name}</td>
                 <td className="p-4 text-right font-medium">{m.quantity}</td>
-                <td className="p-4 text-gray-500">{m.comment || t.common.dash}</td>
+                <td className="p-4 text-app-text-muted">{m.comment || t.common.dash}</td>
               </tr>
             ))}
             {movements.length === 0 && (
               <tr>
-                <td colSpan={6} className="p-8 text-center text-gray-400">{t.common.noMovements}</td>
+                <td colSpan={6} className="p-8 text-center text-app-text-muted">{t.common.noMovements}</td>
               </tr>
             )}
           </tbody>

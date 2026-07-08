@@ -68,9 +68,9 @@ export default function Contacts() {
             {contacts.map((c) => (
               <div key={c.id} className="card p-4">
                 <h3 className="font-semibold text-base">{c.name}</h3>
-                {c.position && <p className="text-sm text-gray-500 mt-0.5">{c.position}</p>}
-                <p className="text-sm text-kinetix-600 mt-1">{companyName(c.company_id)}</p>
-                <div className="mt-2 space-y-1 text-sm text-gray-600">
+                {c.position && <p className="text-sm text-app-text-muted mt-0.5">{c.position}</p>}
+                <p className="text-sm text-kinetix-600 dark:text-kinetix-400 mt-1">{companyName(c.company_id)}</p>
+                <div className="mt-2 space-y-1 text-sm text-app-text-secondary">
                   {c.phone && <p>{c.phone}</p>}
                   {c.email && <p>{c.email}</p>}
                 </div>
@@ -81,19 +81,19 @@ export default function Contacts() {
           <div className="hidden md:block">
             <TableWrap>
               <table className="w-full text-sm">
-                <thead className="bg-gray-50 border-b">
+                <thead>
                   <tr>
-                    <th className="text-left p-3 font-medium text-gray-600">{t.common.name}</th>
-                    <th className="text-left p-3 font-medium text-gray-600">{t.common.position}</th>
-                    <th className="text-left p-3 font-medium text-gray-600">{t.common.company}</th>
-                    <th className="text-left p-3 font-medium text-gray-600">{t.common.phone}</th>
-                    <th className="text-left p-3 font-medium text-gray-600">{t.common.email}</th>
+                    <th className="text-left p-3 font-medium">{t.common.name}</th>
+                    <th className="text-left p-3 font-medium">{t.common.position}</th>
+                    <th className="text-left p-3 font-medium">{t.common.company}</th>
+                    <th className="text-left p-3 font-medium">{t.common.phone}</th>
+                    <th className="text-left p-3 font-medium">{t.common.email}</th>
                     <th className="p-3"></th>
                   </tr>
                 </thead>
                 <tbody>
                   {contacts.map((c) => (
-                    <tr key={c.id} className="border-b hover:bg-gray-50">
+                    <tr key={c.id}>
                       <td className="p-3 font-medium">{c.name}</td>
                       <td className="p-3">{c.position || t.common.dash}</td>
                       <td className="p-3">{companyName(c.company_id)}</td>

@@ -31,7 +31,7 @@ export default function Companies() {
   return (
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">{t.companies.title}</h1>
+        <h1 className="page-title">{t.companies.title}</h1>
         <button className="btn-primary flex items-center gap-2" onClick={() => setModalOpen(true)}>
           <Plus size={18} /> {t.companies.add}
         </button>
@@ -46,11 +46,11 @@ export default function Companies() {
                 <Trash2 size={16} />
               </button>
             </div>
-            {c.inn && <div className="text-sm text-gray-500 mb-1">{t.common.inn}: {c.inn}</div>}
-            {c.phone && <div className="text-sm text-gray-600 mb-1">{c.phone}</div>}
-            {c.email && <div className="text-sm text-gray-600 mb-1">{c.email}</div>}
-            {c.address && <div className="text-sm text-gray-400">{c.address}</div>}
-            <div className="text-xs text-gray-400 mt-3">{formatDate(c.created_at)}</div>
+            {c.inn && <div className="text-sm text-app-text-muted mb-1">{t.common.inn}: {c.inn}</div>}
+            {c.phone && <div className="text-sm text-app-text-secondary mb-1">{c.phone}</div>}
+            {c.email && <div className="text-sm text-app-text-secondary mb-1">{c.email}</div>}
+            {c.address && <div className="text-sm text-app-text-muted">{c.address}</div>}
+            <div className="text-xs text-app-text-muted mt-3">{formatDate(c.created_at)}</div>
           </div>
         ))}
       </div>

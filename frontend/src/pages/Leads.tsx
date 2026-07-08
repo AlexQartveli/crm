@@ -37,7 +37,7 @@ export default function Leads() {
   return (
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">{t.leads.title}</h1>
+        <h1 className="page-title">{t.leads.title}</h1>
         <button className="btn-primary flex items-center gap-2" onClick={() => setModalOpen(true)}>
           <Plus size={18} /> {t.leads.add}
         </button>
@@ -45,21 +45,21 @@ export default function Leads() {
 
       <div className="card overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b">
+          <thead>
             <tr>
-              <th className="text-left p-4 font-medium text-gray-600">{t.common.title}</th>
-              <th className="text-left p-4 font-medium text-gray-600">{t.common.contact}</th>
-              <th className="text-left p-4 font-medium text-gray-600">{t.common.phone}</th>
-              <th className="text-left p-4 font-medium text-gray-600">{t.common.source}</th>
-              <th className="text-left p-4 font-medium text-gray-600">{t.common.status}</th>
-              <th className="text-right p-4 font-medium text-gray-600">{t.common.amount}</th>
-              <th className="text-left p-4 font-medium text-gray-600">{t.common.date}</th>
+              <th className="text-left p-4 font-medium">{t.common.title}</th>
+              <th className="text-left p-4 font-medium">{t.common.contact}</th>
+              <th className="text-left p-4 font-medium">{t.common.phone}</th>
+              <th className="text-left p-4 font-medium">{t.common.source}</th>
+              <th className="text-left p-4 font-medium">{t.common.status}</th>
+              <th className="text-right p-4 font-medium">{t.common.amount}</th>
+              <th className="text-left p-4 font-medium">{t.common.date}</th>
               <th className="p-4"></th>
             </tr>
           </thead>
           <tbody>
             {leads.map((lead) => (
-              <tr key={lead.id} className="border-b hover:bg-gray-50">
+              <tr key={lead.id}>
                 <td className="p-4 font-medium">{lead.title}</td>
                 <td className="p-4">{lead.name || t.common.dash}</td>
                 <td className="p-4">{lead.phone || t.common.dash}</td>
@@ -76,9 +76,9 @@ export default function Leads() {
                   </select>
                 </td>
                 <td className="p-4 text-right">{formatMoney(lead.amount)}</td>
-                <td className="p-4 text-gray-500">{formatDate(lead.created_at)}</td>
+                <td className="p-4 text-app-text-muted">{formatDate(lead.created_at)}</td>
                 <td className="p-4">
-                  <button onClick={() => handleDelete(lead.id)} className="text-red-400 hover:text-red-600">
+                  <button onClick={() => handleDelete(lead.id)} className="text-red-400 hover:text-red-500 dark:text-red-400 dark:hover:text-red-300">
                     <Trash2 size={16} />
                   </button>
                 </td>

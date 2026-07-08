@@ -2,67 +2,223 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  color-scheme: light;
+  --app-bg: 248 250 252;
+  --app-surface: 255 255 255;
+  --app-muted: 241 245 249;
+  --app-border: 226 232 240;
+  --app-text: 15 23 42;
+  --app-text-secondary: 71 85 105;
+  --app-text-muted: 100 116 139;
+  --app-header-bg: 255 255 255;
+  --app-header-text: 15 23 42;
+  --app-header-border: 226 232 240;
+  --app-control-bg: 241 245 249;
+  --app-control-border: 226 232 240;
+  --app-control-active: 26 140 216;
+  --app-control-inactive: 100 116 139;
+  --app-overlay: 15 23 42;
+}
+
+.dark {
+  color-scheme: dark;
+  --app-bg: 15 23 42;
+  --app-surface: 30 41 59;
+  --app-muted: 51 65 85;
+  --app-border: 51 65 85;
+  --app-text: 248 250 252;
+  --app-text-secondary: 203 213 225;
+  --app-text-muted: 148 163 184;
+  --app-header-bg: 30 41 59;
+  --app-header-text: 248 250 252;
+  --app-header-border: 51 65 85;
+  --app-control-bg: 51 65 85;
+  --app-control-border: 71 85 105;
+  --app-control-active: 26 140 216;
+  --app-control-inactive: 203 213 225;
+  --app-overlay: 0 0 0;
+}
+
 body {
   font-family: 'Inter', system-ui, sans-serif;
-  @apply bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100;
+  @apply bg-app-bg text-app-text antialiased;
 }
 
 @layer components {
   .btn-primary {
     @apply bg-kinetix-600 hover:bg-kinetix-700 text-white px-4 py-2 rounded-lg font-medium transition-colors;
   }
-  .btn-secondary {
-    @apply bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-4 py-2 rounded-lg font-medium transition-colors
-      dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-200 dark:border-gray-600;
-  }
-  .card {
-    @apply bg-white rounded-xl shadow-sm border border-gray-100
-      dark:bg-gray-800 dark:border-gray-700;
-  }
-  .input {
-    @apply w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-kinetix-500 focus:border-transparent
-      dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-500;
-  }
-  .label {
-    @apply block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300;
-  }
-}
 
-@layer utilities {
-  .dark .bg-gray-50 {
-    @apply !bg-gray-800;
+  .btn-secondary {
+    @apply bg-app-surface hover:bg-app-muted text-app-text-secondary border border-app-border px-4 py-2 rounded-lg font-medium transition-colors;
   }
-  .dark .bg-white {
-    @apply !bg-gray-800;
+
+  .card {
+    @apply bg-app-surface rounded-xl shadow-sm border border-app-border;
   }
-  .dark .border-gray-100 {
-    @apply !border-gray-700;
+
+  .input {
+    @apply w-full border border-app-border bg-app-surface rounded-lg px-3 py-2 text-sm text-app-text
+      placeholder:text-app-text-muted focus:outline-none focus:ring-2 focus:ring-kinetix-500 focus:border-transparent;
   }
-  .dark .border-gray-200 {
-    @apply !border-gray-700;
+
+  .label {
+    @apply block text-sm font-medium text-app-text-secondary mb-1;
   }
-  .dark .text-gray-900 {
-    @apply !text-gray-100;
+
+  .page-title {
+    @apply text-xl md:text-2xl font-bold text-app-text;
   }
-  .dark .text-gray-800 {
-    @apply !text-gray-200;
+
+  .mobile-header {
+    @apply sticky top-0 z-40 flex items-center justify-between px-4 py-3 shrink-0 shadow-sm
+      bg-app-header-bg text-app-header-text border-b border-app-header-border;
   }
-  .dark .text-gray-700 {
-    @apply !text-gray-300;
+
+  .header-controls {
+    @apply flex gap-1 p-1 rounded-lg border border-app-control-border bg-app-control-bg;
   }
-  .dark .text-gray-600 {
-    @apply !text-gray-400;
+
+  .header-control-btn {
+    @apply rounded-md transition-colors text-app-control-inactive hover:bg-app-surface hover:text-app-text;
   }
-  .dark .text-gray-500 {
-    @apply !text-gray-400;
+
+  .header-control-btn-active {
+    @apply bg-kinetix-600 text-white shadow-sm hover:bg-kinetix-600 hover:text-white;
   }
-  .dark .hover\:bg-gray-50:hover {
-    @apply !bg-gray-700/50;
+
+  .sidebar-controls {
+    @apply flex gap-1 p-1 rounded-lg bg-kinetix-900/50;
   }
-  .dark .hover\:bg-gray-100:hover {
-    @apply !bg-gray-700/50;
+
+  .sidebar-control-btn {
+    @apply rounded-md transition-colors text-kinetix-300 hover:text-white hover:bg-kinetix-700;
   }
-  .dark .hover\:shadow-md:hover {
-    @apply !shadow-gray-900/50;
+
+  .sidebar-control-btn-active {
+    @apply bg-kinetix-600 text-white hover:bg-kinetix-600 hover:text-white;
+  }
+
+  .accent-panel {
+    @apply bg-kinetix-50 border-kinetix-200 dark:bg-kinetix-900/40 dark:border-kinetix-800;
+  }
+
+  .accent-panel-title {
+    @apply font-semibold text-kinetix-800 dark:text-kinetix-200;
+  }
+
+  .accent-panel-text {
+    @apply text-sm text-kinetix-600 dark:text-kinetix-300;
+  }
+
+  .stat-icon {
+    @apply inline-flex p-2 rounded-lg;
+  }
+
+  .stat-icon-blue {
+    @apply text-blue-600 bg-blue-50 dark:text-blue-300 dark:bg-blue-950/60;
+  }
+
+  .stat-icon-purple {
+    @apply text-purple-600 bg-purple-50 dark:text-purple-300 dark:bg-purple-950/60;
+  }
+
+  .stat-icon-green {
+    @apply text-green-600 bg-green-50 dark:text-green-300 dark:bg-green-950/60;
+  }
+
+  .stat-icon-orange {
+    @apply text-orange-600 bg-orange-50 dark:text-orange-300 dark:bg-orange-950/60;
+  }
+
+  .stat-icon-indigo {
+    @apply text-indigo-600 bg-indigo-50 dark:text-indigo-300 dark:bg-indigo-950/60;
+  }
+
+  .stat-icon-teal {
+    @apply text-teal-600 bg-teal-50 dark:text-teal-300 dark:bg-teal-950/60;
+  }
+
+  .stat-icon-kinetix {
+    @apply text-kinetix-600 bg-kinetix-50 dark:text-kinetix-300 dark:bg-kinetix-900/50;
+  }
+
+  .stage-tile {
+    @apply text-center p-4 rounded-lg bg-app-muted;
+  }
+
+  .action-edit {
+    @apply text-kinetix-600 bg-kinetix-50 hover:bg-kinetix-100
+      dark:text-kinetix-300 dark:bg-kinetix-900/50 dark:hover:bg-kinetix-900/70;
+  }
+
+  .action-delete {
+    @apply text-red-500 bg-red-50 hover:bg-red-100
+      dark:text-red-400 dark:bg-red-950/50 dark:hover:bg-red-950/70;
+  }
+
+  .action-edit-icon {
+    @apply text-kinetix-600 hover:bg-kinetix-50 dark:text-kinetix-400 dark:hover:bg-kinetix-900/50;
+  }
+
+  .action-delete-icon {
+    @apply text-red-400 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/50;
+  }
+
+  .card table thead {
+    @apply bg-app-muted border-b border-app-border;
+  }
+
+  .card table th {
+    @apply text-app-text-secondary;
+  }
+
+  .card table tbody tr {
+    @apply border-b border-app-border hover:bg-app-muted/70;
+  }
+
+  .card table td {
+    @apply text-app-text;
+  }
+
+  .modal-backdrop {
+    @apply absolute inset-0 bg-app-overlay/50;
+  }
+
+  .modal-panel {
+    @apply relative bg-app-surface rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto border border-app-border;
+  }
+
+  .modal-header {
+    @apply flex items-center justify-between p-5 border-b border-app-border;
+  }
+
+  .modal-title {
+    @apply text-lg font-semibold text-app-text;
+  }
+
+  .modal-close {
+    @apply p-1 hover:bg-app-muted rounded-lg text-app-text-secondary;
+  }
+
+  .info-banner-success {
+    @apply p-3 bg-green-50 text-green-700 rounded-lg dark:bg-green-950/50 dark:text-green-300;
+  }
+
+  .info-banner-neutral {
+    @apply p-4 rounded-lg bg-app-muted;
+  }
+
+  .info-box {
+    @apply mt-8 p-4 bg-app-muted rounded-lg text-sm text-app-text-secondary space-y-2;
+  }
+
+  .info-box-title {
+    @apply font-medium text-app-text;
+  }
+
+  .select-muted {
+    @apply w-full text-sm border border-app-border rounded-lg px-3 py-2 bg-app-muted text-app-text;
   }
 }

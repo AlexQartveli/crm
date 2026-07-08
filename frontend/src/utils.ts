@@ -13,28 +13,28 @@ function mapStatuses(
 }
 
 const STAGE_COLORS: Record<string, string> = {
-  new: 'bg-blue-100 text-blue-800',
-  preparation: 'bg-purple-100 text-purple-800',
-  proposal: 'bg-yellow-100 text-yellow-800',
-  negotiation: 'bg-orange-100 text-orange-800',
-  won: 'bg-green-100 text-green-800',
-  lost: 'bg-red-100 text-red-800',
+  new: 'bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300',
+  preparation: 'bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300',
+  proposal: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-950/60 dark:text-yellow-300',
+  negotiation: 'bg-orange-100 text-orange-800 dark:bg-orange-950/60 dark:text-orange-300',
+  won: 'bg-green-100 text-green-800 dark:bg-green-950/60 dark:text-green-300',
+  lost: 'bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-300',
 }
 
 const LEAD_COLORS: Record<string, string> = {
-  new: 'bg-blue-100 text-blue-800',
-  in_progress: 'bg-yellow-100 text-yellow-800',
-  converted: 'bg-green-100 text-green-800',
-  junk: 'bg-gray-100 text-gray-800',
+  new: 'bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300',
+  in_progress: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-950/60 dark:text-yellow-300',
+  converted: 'bg-green-100 text-green-800 dark:bg-green-950/60 dark:text-green-300',
+  junk: 'bg-gray-100 text-gray-800 dark:bg-slate-700 dark:text-slate-300',
 }
 
 const INVOICE_COLORS: Record<string, string> = {
-  draft: 'bg-gray-100 text-gray-800',
-  pending: 'bg-yellow-100 text-yellow-800',
-  sent: 'bg-blue-100 text-blue-800',
-  active: 'bg-green-100 text-green-800',
-  cancelled: 'bg-red-100 text-red-800',
-  refused: 'bg-red-100 text-red-800',
+  draft: 'bg-gray-100 text-gray-800 dark:bg-slate-700 dark:text-slate-300',
+  pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-950/60 dark:text-yellow-300',
+  sent: 'bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300',
+  active: 'bg-green-100 text-green-800 dark:bg-green-950/60 dark:text-green-300',
+  cancelled: 'bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-300',
+  refused: 'bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-300',
 }
 
 export function useStatuses(): {

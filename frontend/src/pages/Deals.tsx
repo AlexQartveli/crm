@@ -67,9 +67,9 @@ export default function Deals() {
                 {dealStages[deal.stage]?.label}
               </span>
             </div>
-            <div className="text-xl font-bold text-kinetix-700 mb-1">{formatMoney(deal.amount)}</div>
-            {deal.company_name && <p className="text-sm text-gray-500">{deal.company_name}</p>}
-            <select value={deal.stage} onChange={(e) => handleStageChange(deal.id, e.target.value)} className="mt-3 w-full text-sm border rounded-lg px-3 py-2 bg-gray-50">
+            <div className="text-xl font-bold text-kinetix-700 dark:text-kinetix-400 mb-1">{formatMoney(deal.amount)}</div>
+            {deal.company_name && <p className="text-sm text-app-text-muted">{deal.company_name}</p>}
+            <select value={deal.stage} onChange={(e) => handleStageChange(deal.id, e.target.value)} className="mt-3 select-muted">
               {STAGE_ORDER.map((s) => <option key={s} value={s}>{dealStages[s]?.label}</option>)}
             </select>
             <CardActions onEdit={() => openEdit(deal)} onDelete={() => handleDelete(deal.id)} />
@@ -86,15 +86,15 @@ export default function Deals() {
             <div key={stage} className="min-w-[260px] flex-shrink-0">
               <div className="flex items-center justify-between mb-3">
                 <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${info?.color}`}>{info?.label}</span>
-                <span className="text-xs text-gray-500">{stageDeals.length} · {formatMoney(total)}</span>
+                <span className="text-xs text-app-text-muted">{stageDeals.length} · {formatMoney(total)}</span>
               </div>
               <div className="space-y-3 min-h-[120px]">
                 {stageDeals.map((deal) => (
                   <div key={deal.id} className="card p-4 hover:shadow-md transition-shadow">
                     <h3 className="font-medium text-sm mb-2">{deal.title}</h3>
-                    <div className="text-lg font-bold text-kinetix-700 mb-2">{formatMoney(deal.amount)}</div>
-                    {deal.company_name && <div className="text-xs text-gray-500 mb-1">{deal.company_name}</div>}
-                    <select value={deal.stage} onChange={(e) => handleStageChange(deal.id, e.target.value)} className="mt-2 w-full text-xs border rounded-lg px-2 py-1.5 bg-gray-50">
+                    <div className="text-lg font-bold text-kinetix-700 dark:text-kinetix-400 mb-2">{formatMoney(deal.amount)}</div>
+                    {deal.company_name && <div className="text-xs text-app-text-muted mb-1">{deal.company_name}</div>}
+                    <select value={deal.stage} onChange={(e) => handleStageChange(deal.id, e.target.value)} className="mt-2 select-muted text-xs py-1.5">
                       {STAGE_ORDER.map((s) => <option key={s} value={s}>{dealStages[s]?.label}</option>)}
                     </select>
                     <CardActions onEdit={() => openEdit(deal)} onDelete={() => handleDelete(deal.id)} />

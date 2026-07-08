@@ -59,10 +59,10 @@ export default function Products() {
             {products.map((p) => (
               <div key={p.id} className="card p-4">
                 <h3 className="font-semibold">{p.name}</h3>
-                {p.sku && <p className="text-sm text-gray-500 mt-0.5">{t.products.art}: {p.sku}</p>}
+                {p.sku && <p className="text-sm text-app-text-muted mt-0.5">{t.products.art}: {p.sku}</p>}
                 <div className="flex justify-between items-center mt-2">
-                  <span className="text-lg font-bold text-kinetix-700">{formatMoney(p.price)}</span>
-                  <span className={`text-sm font-medium ${p.total_stock > 0 ? 'text-green-600' : 'text-red-500'}`}>
+                  <span className="text-lg font-bold text-kinetix-700 dark:text-kinetix-400">{formatMoney(p.price)}</span>
+                  <span className={`text-sm font-medium ${p.total_stock > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
                     {t.common.inStock}: {p.total_stock} {p.unit}
                   </span>
                 </div>
@@ -73,22 +73,22 @@ export default function Products() {
           <div className="hidden md:block">
             <TableWrap>
               <table className="w-full text-sm">
-                <thead className="bg-gray-50 border-b">
+                <thead>
                   <tr>
-                    <th className="text-left p-3 font-medium text-gray-600">{t.common.name}</th>
-                    <th className="text-left p-3 font-medium text-gray-600">{t.common.sku}</th>
-                    <th className="text-right p-3 font-medium text-gray-600">{t.common.price}</th>
-                    <th className="text-right p-3 font-medium text-gray-600">{t.common.inStock}</th>
+                    <th className="text-left p-3 font-medium">{t.common.name}</th>
+                    <th className="text-left p-3 font-medium">{t.common.sku}</th>
+                    <th className="text-right p-3 font-medium">{t.common.price}</th>
+                    <th className="text-right p-3 font-medium">{t.common.inStock}</th>
                     <th className="p-3"></th>
                   </tr>
                 </thead>
                 <tbody>
                   {products.map((p) => (
-                    <tr key={p.id} className="border-b hover:bg-gray-50">
+                    <tr key={p.id}>
                       <td className="p-3 font-medium">{p.name}</td>
-                      <td className="p-3 text-gray-500">{p.sku || t.common.dash}</td>
+                      <td className="p-3 text-app-text-muted">{p.sku || t.common.dash}</td>
                       <td className="p-3 text-right">{formatMoney(p.price)}</td>
-                      <td className="p-3 text-right"><span className={p.total_stock > 0 ? 'text-green-600 font-medium' : 'text-red-500'}>{p.total_stock}</span></td>
+                      <td className="p-3 text-right"><span className={p.total_stock > 0 ? 'text-green-600 dark:text-green-400 font-medium' : 'text-red-500 dark:text-red-400'}>{p.total_stock}</span></td>
                       <td className="p-3"><RowActions onEdit={() => openEdit(p)} onDelete={() => handleDelete(p.id)} /></td>
                     </tr>
                   ))}

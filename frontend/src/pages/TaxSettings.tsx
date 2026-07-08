@@ -81,15 +81,15 @@ export default function TaxSettings() {
       <div className="grid md:grid-cols-2 gap-6">
         <div className="card p-6">
           <div className="flex items-center gap-3 mb-6">
-            <Link2 className="text-kinetix-600" size={24} />
+            <Link2 className="text-kinetix-600 dark:text-kinetix-400" size={24} />
             <div>
-              <h2 className="text-lg font-semibold">{t.tax.connectTitle}</h2>
-              <p className="text-sm text-gray-500">{t.tax.connectDesc}</p>
+              <h2 className="text-lg font-semibold text-app-text">{t.tax.connectTitle}</h2>
+              <p className="text-sm text-app-text-muted">{t.tax.connectDesc}</p>
             </div>
           </div>
 
           {settings?.is_connected && (
-            <div className="mb-4 p-3 bg-green-50 text-green-700 rounded-lg text-sm flex items-center gap-2">
+            <div className="mb-4 info-banner-success text-sm flex items-center gap-2">
               <Shield size={16} /> {t.tax.connected}
             </div>
           )}
@@ -120,29 +120,29 @@ export default function TaxSettings() {
               </button>
             </div>
           </form>
-          {message && <p className="mt-4 text-sm text-gray-600">{message}</p>}
+          {message && <p className="mt-4 text-sm text-app-text-secondary">{message}</p>}
         </div>
 
         <div className="card p-6">
           <div className="flex items-center gap-3 mb-6">
-            <Search className="text-kinetix-600" size={24} />
-            <h2 className="text-lg font-semibold">{t.tax.vatCheck}</h2>
+            <Search className="text-kinetix-600 dark:text-kinetix-400" size={24} />
+            <h2 className="text-lg font-semibold text-app-text">{t.tax.vatCheck}</h2>
           </div>
           <div className="flex gap-3 mb-4">
             <input className="input" value={vatTin} onChange={(e) => setVatTin(e.target.value)} placeholder={t.tax.counterpartyTin} />
             <button className="btn-primary shrink-0" onClick={handleVatCheck}>{t.common.check}</button>
           </div>
           {vatResult && (
-            <div className={`p-4 rounded-lg ${vatResult.is_vat_payer ? 'bg-green-50' : 'bg-gray-50'}`}>
-              <p className="font-medium">{vatResult.org_name || t.common.organization}</p>
+            <div className={`p-4 rounded-lg ${vatResult.is_vat_payer ? 'info-banner-success' : 'info-banner-neutral'}`}>
+              <p className="font-medium text-app-text">{vatResult.org_name || t.common.organization}</p>
               <p className="text-sm mt-1">
                 {vatResult.is_vat_payer ? `✓ ${t.common.vatPayer}` : `✗ ${t.common.notVatPayer}`}
               </p>
             </div>
           )}
 
-          <div className="mt-8 p-4 bg-gray-50 rounded-lg text-sm text-gray-600 space-y-2">
-            <p className="font-medium text-gray-800">{t.tax.features}</p>
+          <div className="info-box">
+            <p className="info-box-title">{t.tax.features}</p>
             <ul className="list-disc list-inside space-y-1">
               <li>{t.tax.f1}</li>
               <li>{t.tax.f2}</li>

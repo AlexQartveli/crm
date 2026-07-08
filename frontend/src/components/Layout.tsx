@@ -70,14 +70,14 @@ export default function Layout() {
   const [menuOpen, setMenuOpen] = useState(false)
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-app-bg">
       <aside className="hidden md:flex w-60 bg-kinetix-800 text-white flex-col shrink-0">
         <Sidebar />
       </aside>
 
       {menuOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setMenuOpen(false)} />
+          <div className="absolute inset-0 bg-app-overlay/50" onClick={() => setMenuOpen(false)} />
           <aside className="relative w-64 h-full bg-kinetix-800 text-white flex flex-col">
             <button
               onClick={() => setMenuOpen(false)}
@@ -91,21 +91,21 @@ export default function Layout() {
       )}
 
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="md:hidden sticky top-0 z-40 flex items-center justify-between bg-kinetix-800 text-white px-4 py-3 shrink-0 shadow-md">
+        <header className="mobile-header md:hidden">
           <div className="flex items-center gap-3 min-w-0">
             <button
               onClick={() => setMenuOpen(true)}
-              className="p-1 shrink-0 text-kinetix-100 hover:text-white"
+              className="p-1 shrink-0 text-app-text-secondary hover:text-app-text"
               aria-label="Menu"
             >
               <Menu size={22} />
             </button>
-            <span className="font-bold truncate">Kinetix</span>
+            <span className="font-bold truncate text-app-text">Kinetix</span>
           </div>
           <HeaderControls variant="mobile" />
         </header>
 
-        <main className="flex-1 overflow-auto dark:bg-gray-900">
+        <main className="flex-1 overflow-auto bg-app-bg">
           <Outlet />
         </main>
       </div>

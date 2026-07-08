@@ -91,57 +91,57 @@ export default function Accounting() {
         </button>
       }
     >
-      <div className="card p-4 mb-6 bg-kinetix-50 border-kinetix-200">
+      <div className="card p-4 mb-6 accent-panel">
         <div className="flex items-center gap-3">
-          <FileText className="text-kinetix-600" size={24} />
+          <FileText className="text-kinetix-600 dark:text-kinetix-400" size={24} />
           <div>
-            <h3 className="font-semibold text-kinetix-800">{t.accounting.rsgeTitle}</h3>
-            <p className="text-sm text-kinetix-600">{t.accounting.rsgeDesc}</p>
+            <h3 className="accent-panel-title">{t.accounting.rsgeTitle}</h3>
+            <p className="accent-panel-text">{t.accounting.rsgeDesc}</p>
           </div>
         </div>
       </div>
 
       <TableWrap>
         <table className="w-full text-sm min-w-[700px]">
-          <thead className="bg-gray-50 border-b">
+          <thead>
             <tr>
-              <th className="text-left p-3 font-medium text-gray-600">{t.common.number}</th>
-              <th className="text-left p-3 font-medium text-gray-600">{t.common.buyer}</th>
-              <th className="text-left p-3 font-medium text-gray-600">{t.common.tin}</th>
-              <th className="text-right p-3 font-medium text-gray-600">{t.common.amount}</th>
-              <th className="text-right p-3 font-medium text-gray-600">{t.common.vat}</th>
-              <th className="text-right p-3 font-medium text-gray-600">{t.common.total}</th>
-              <th className="text-left p-3 font-medium text-gray-600">{t.common.status}</th>
-              <th className="text-left p-3 font-medium text-gray-600">{t.common.rsgeId}</th>
+              <th className="text-left p-3 font-medium">{t.common.number}</th>
+              <th className="text-left p-3 font-medium">{t.common.buyer}</th>
+              <th className="text-left p-3 font-medium">{t.common.tin}</th>
+              <th className="text-right p-3 font-medium">{t.common.amount}</th>
+              <th className="text-right p-3 font-medium">{t.common.vat}</th>
+              <th className="text-right p-3 font-medium">{t.common.total}</th>
+              <th className="text-left p-3 font-medium">{t.common.status}</th>
+              <th className="text-left p-3 font-medium">{t.common.rsgeId}</th>
               <th className="p-3"></th>
             </tr>
           </thead>
           <tbody>
             {invoices.map((inv) => (
-              <tr key={inv.id} className="border-b hover:bg-gray-50">
+              <tr key={inv.id}>
                 <td className="p-3 font-medium">{inv.number}</td>
                 <td className="p-3">{inv.buyer_name || inv.company_name || t.common.dash}</td>
-                <td className="p-3 text-gray-500">{inv.tin_buyer}</td>
+                <td className="p-3 text-app-text-muted">{inv.tin_buyer}</td>
                 <td className="p-3 text-right">{formatMoney(inv.amount)}</td>
-                <td className="p-3 text-right text-orange-600">{formatMoney(inv.vat_amount)}</td>
+                <td className="p-3 text-right text-orange-600 dark:text-orange-400">{formatMoney(inv.vat_amount)}</td>
                 <td className="p-3 text-right font-medium">{formatMoney(inv.total_amount)}</td>
                 <td className="p-3">
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${invoiceStatuses[inv.status]?.color || ''}`}>
                     {invoiceStatuses[inv.status]?.label || inv.status}
                   </span>
                 </td>
-                <td className="p-3 text-xs text-gray-500">
+                <td className="p-3 text-xs text-app-text-muted">
                   {inv.rsge_invoice_id ? `#${inv.rsge_invoice_id}` : t.common.dash}
                 </td>
                 <td className="p-3">
                   <div className="flex gap-1">
                     {inv.status === 'draft' && (
-                      <button onClick={() => handleSync(inv.id)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded" title={t.common.sendToRsge}>
+                      <button onClick={() => handleSync(inv.id)} className="p-1.5 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950/50 rounded" title={t.common.sendToRsge}>
                         <Send size={16} />
                       </button>
                     )}
                     {inv.status === 'sent' && (
-                      <button onClick={() => handleActivate(inv.id)} className="p-1.5 text-green-600 hover:bg-green-50 rounded" title={t.common.activate}>
+                      <button onClick={() => handleActivate(inv.id)} className="p-1.5 text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-950/50 rounded" title={t.common.activate}>
                         <CheckCircle size={16} />
                       </button>
                     )}
