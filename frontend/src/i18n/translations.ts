@@ -115,6 +115,9 @@ const ru = {
     personName: 'Имя',
     pinSms: 'PIN из SMS',
     authError: 'Ошибка авторизации',
+    theme: 'Тема',
+    lightTheme: 'Светлая тема',
+    darkTheme: 'Тёмная тема',
   },
   dashboard: {
     title: 'Дашборд',
@@ -318,6 +321,9 @@ const en: Translations = {
     personName: 'Name',
     pinSms: 'PIN from SMS',
     authError: 'Authentication error',
+    theme: 'Theme',
+    lightTheme: 'Light theme',
+    darkTheme: 'Dark theme',
   },
   dashboard: {
     title: 'Dashboard',
@@ -495,6 +501,9 @@ const ka: Translations = {
     personName: 'სახელი',
     pinSms: 'PIN SMS-დან',
     authError: 'ავტორიზაციის შეცდომა',
+    theme: 'თემა',
+    lightTheme: 'ღია თემა',
+    darkTheme: 'მუქი თემა',
   },
   dashboard: {
     title: 'დაფა',

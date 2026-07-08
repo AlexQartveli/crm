@@ -15,7 +15,7 @@ import {
   Settings,
 } from 'lucide-react'
 import { useI18n } from '../i18n/I18nContext'
-import LanguageSwitcher from './LanguageSwitcher'
+import HeaderControls from './HeaderControls'
 
 function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const { t } = useI18n()
@@ -38,8 +38,8 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       <div className="p-5 border-b border-kinetix-700">
         <h1 className="text-xl font-bold tracking-tight">Kinetix</h1>
         <p className="text-kinetix-300 text-xs mt-1">{t.app.tagline}</p>
-        <div className="hidden md:block mt-3">
-          <LanguageSwitcher variant="sidebar" />
+        <div className="hidden md:block">
+          <HeaderControls variant="sidebar" />
         </div>
       </div>
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
@@ -102,10 +102,10 @@ export default function Layout() {
             </button>
             <span className="font-bold truncate">Kinetix</span>
           </div>
-          <LanguageSwitcher variant="mobile" />
+          <HeaderControls variant="mobile" />
         </header>
 
-        <main className="flex-1 overflow-auto">
+        <main className="flex-1 overflow-auto dark:bg-gray-900">
           <Outlet />
         </main>
       </div>

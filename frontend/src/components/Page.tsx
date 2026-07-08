@@ -11,7 +11,7 @@ export default function Page({ title, action, children }: PageProps) {
   return (
     <div className="p-4 md:p-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
-        <h1 className="text-xl md:text-2xl font-bold">{title}</h1>
+        <h1 className="text-xl md:text-2xl font-bold dark:text-white">{title}</h1>
         {action}
       </div>
       {children}
