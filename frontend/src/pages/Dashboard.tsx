@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Users, Handshake, Building2, Package, TrendingUp, DollarSign } from 'lucide-react'
 import { api, DashboardData } from '../api/client'
-import Page, { Loading } from '../components/Page'
+import Page from '../components/Page'
 import { useI18n } from '../i18n/I18nContext'
 import { useStatuses, formatMoney } from '../utils'
 
@@ -15,7 +15,14 @@ export default function Dashboard() {
     api.dashboard().then(setData).catch(console.error).finally(() => setLoading(false))
   }, [])
 
-  if (loading) return <Loading />
+  if (loading) {
+    return (
+      <Page title={t.dashboard.title}>
+        <p className="text-app-text-muted">{t.common.loading}</p>
+        <p className="text-sm text-app-text-muted mt-2">{t.common.connectingServer}</p>
+      </Page>
+    )
+  }
   if (!data) return <Page title={t.dashboard.title}><p className="text-app-text-muted">{t.common.empty}</p></Page>
 
   const stats = [

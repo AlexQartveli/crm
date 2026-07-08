@@ -31,6 +31,7 @@ const ru = {
   },
   common: {
     loading: 'Загрузка...',
+    connectingServer: 'Подключение к серверу... Первый запуск может занять до минуты.',
     empty: 'Нет данных',
     add: 'Добавить',
     create: 'Создать',
@@ -312,6 +313,7 @@ const en: Translations = {
   },
   common: {
     loading: 'Loading...',
+    connectingServer: 'Connecting to server... First launch may take up to a minute.',
     empty: 'No data',
     add: 'Add',
     create: 'Create',
@@ -565,6 +567,7 @@ const ka: Translations = {
   },
   common: {
     loading: 'იტვირთება...',
+    connectingServer: 'სერვერთან დაკავშირება... პირველი გაშვება შეიძლება 1 წუთამდე გაგრძელდეს.',
     empty: 'მონაცემები არ არის',
     add: 'დამატება',
     create: 'შექმნა',

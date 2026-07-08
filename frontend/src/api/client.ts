@@ -5,25 +5,40 @@ const USE_LOCAL = import.meta.env.VITE_USE_LOCAL_API === 'true'
 
 let useLocal = USE_LOCAL
 
+const REMOTE_TIMEOUT_MS = 20000
+const REMOTE_RETRIES = 3
+
+async function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
-  const controller = new AbortController()
-  const timeoutMs = USE_LOCAL ? 5000 : 90000
-  const timeout = setTimeout(() => controller.abort(), timeoutMs)
-  try {
-    const res = await fetch(`${API_BASE}${url}`, {
-      headers: { 'Content-Type': 'application/json', ...options?.headers },
-      signal: controller.signal,
-      ...options,
-    })
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({ detail: res.statusText }))
-      throw new Error(err.detail || 'Ошибка запроса')
+  let lastError: unknown
+  const attempts = USE_LOCAL ? 1 : REMOTE_RETRIES
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    const controller = new AbortController()
+    const timeoutMs = USE_LOCAL ? 5000 : REMOTE_TIMEOUT_MS
+    const timeout = setTimeout(() => controller.abort(), timeoutMs)
+    try {
+      const res = await fetch(`${API_BASE}${url}`, {
+        headers: { 'Content-Type': 'application/json', ...options?.headers },
+        signal: controller.signal,
+        ...options,
+      })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: res.statusText }))
+        throw new Error(err.detail || 'Ошибка запроса')
+      }
+      if (res.status === 204) return undefined as T
+      return res.json()
+    } catch (err) {
+      lastError = err
+      if (attempt < attempts - 1) await sleep(2000)
+    } finally {
+      clearTimeout(timeout)
     }
-    if (res.status === 204) return undefined as T
-    return res.json()
-  } finally {
-    clearTimeout(timeout)
   }
+  throw lastError
 }
 
 async function withFallback<T>(remote: () => Promise<T>, local: () => T): Promise<T> {
