@@ -15,7 +15,8 @@ export default function Dashboard() {
     api.dashboard().then(setData).catch(console.error).finally(() => setLoading(false))
   }, [])
 
-  if (loading || !data) return <Loading />
+  if (loading) return <Loading />
+  if (!data) return <Page title={t.dashboard.title}><p className="text-app-text-muted">{t.common.empty}</p></Page>
 
   const stats = [
     { label: t.dashboard.stats.leads, value: data.leads, icon: Users, color: 'stat-icon-blue' },

@@ -43,14 +43,14 @@
 ### Шаг 3. Подключите backend на Render (один раз)
 
 1. Зайдите на [render.com](https://render.com) → войдите через GitHub
-2. **New → Blueprint** → выберите репозиторий `AlexQartveli/-`
+2. **New → Blueprint** → выберите репозиторий `AlexQartveli/crm`
 3. Render подхватит `render.yaml` и задеплоит API
 
 ### Готово — открывайте с телефона
 
 | Что | Адрес |
 |-----|-------|
-| **Kinetix (интерфейс)** | https://alexqartveli.github.io/-/ |
+| **Kinetix (интерфейс)** | https://alexqartveli.github.io/crm/ |
 | **API** | https://kinetix-api.onrender.com |
 | **Swagger** | https://kinetix-api.onrender.com/docs |
 
@@ -85,6 +85,33 @@ cd frontend
 npm install
 npm run dev
 ```
+
+## Windows-приложение
+
+Настольное приложение с встроенным backend (SQLite в `%APPDATA%\\Kinetix`).
+
+### Сборка установщика (.exe)
+
+```bat
+build-windows.bat
+```
+
+Или в PowerShell:
+
+```powershell
+.\scripts\build-windows.ps1
+```
+
+Готовый установщик: `desktop\release\Kinetix CRM Setup *.exe`
+
+### Запуск в режиме разработки
+
+```bash
+cd frontend && npm run build
+cd ../desktop && npm install && npm start
+```
+
+> Для dev-режима нужен Python 3.12 в PATH. В собранном `.exe` Python не требуется.
 
 ## API
 

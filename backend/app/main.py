@@ -1,5 +1,9 @@
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import func
 
 from app.database import Base, SessionLocal, engine, migrate_schema
@@ -99,3 +103,32 @@ def dashboard():
         }
     finally:
         db.close()
+
+
+def _mount_frontend(app: FastAPI) -> None:
+    import os
+
+    static_dir = os.environ.get("KINETIX_STATIC_DIR")
+    if not static_dir or not Path(static_dir).is_dir():
+        return
+
+    assets_dir = Path(static_dir) / "assets"
+    if assets_dir.is_dir():
+        app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="assets")
+
+    @app.get("/")
+    def spa_root():
+        return FileResponse(Path(static_dir) / "index.html")
+
+    @app.get("/{full_path:path}")
+    def spa_fallback(full_path: str):
+        if full_path.startswith("api/") or full_path.startswith("docs") or full_path.startswith("openapi"):
+            from fastapi import HTTPException
+            raise HTTPException(status_code=404)
+        file_path = Path(static_dir) / full_path
+        if file_path.is_file():
+            return FileResponse(file_path)
+        return FileResponse(Path(static_dir) / "index.html")
+
+
+_mount_frontend(app)

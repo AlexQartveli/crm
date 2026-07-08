@@ -1,7 +1,18 @@
+from pathlib import Path
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///./kinetix.db"
+def _database_url() -> str:
+    custom = __import__("os").environ.get("KINETIX_DB_PATH")
+    if custom:
+        path = Path(custom)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        return f"sqlite:///{path.as_posix()}"
+    return "sqlite:///./kinetix.db"
+
+
+SQLALCHEMY_DATABASE_URL = _database_url()
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,

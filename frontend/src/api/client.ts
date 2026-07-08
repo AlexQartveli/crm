@@ -7,7 +7,8 @@ let useLocal = USE_LOCAL
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
   const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), 5000)
+  const timeoutMs = USE_LOCAL ? 5000 : 90000
+  const timeout = setTimeout(() => controller.abort(), timeoutMs)
   try {
     const res = await fetch(`${API_BASE}${url}`, {
       headers: { 'Content-Type': 'application/json', ...options?.headers },
