@@ -36,14 +36,10 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <>
       <div className="p-5 border-b border-kinetix-700">
-        <div className="flex items-center justify-between gap-2">
-          <div>
-            <h1 className="text-xl font-bold tracking-tight">Kinetix</h1>
-            <p className="text-kinetix-300 text-xs mt-1">{t.app.tagline}</p>
-          </div>
-        </div>
-        <div className="mt-3">
-          <LanguageSwitcher />
+        <h1 className="text-xl font-bold tracking-tight">Kinetix</h1>
+        <p className="text-kinetix-300 text-xs mt-1">{t.app.tagline}</p>
+        <div className="hidden md:block mt-3">
+          <LanguageSwitcher variant="sidebar" />
         </div>
       </div>
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
@@ -95,15 +91,20 @@ export default function Layout() {
       )}
 
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="md:hidden flex items-center justify-between bg-kinetix-800 text-white px-4 py-3 shrink-0">
-          <div className="flex items-center gap-3">
-            <button onClick={() => setMenuOpen(true)} className="p-1">
+        <header className="md:hidden sticky top-0 z-40 flex items-center justify-between bg-kinetix-800 text-white px-4 py-3 shrink-0 shadow-md">
+          <div className="flex items-center gap-3 min-w-0">
+            <button
+              onClick={() => setMenuOpen(true)}
+              className="p-1 shrink-0 text-kinetix-100 hover:text-white"
+              aria-label="Menu"
+            >
               <Menu size={22} />
             </button>
-            <span className="font-bold">Kinetix</span>
+            <span className="font-bold truncate">Kinetix</span>
           </div>
-          <LanguageSwitcher compact />
+          <LanguageSwitcher variant="mobile" />
         </header>
+
         <main className="flex-1 overflow-auto">
           <Outlet />
         </main>
