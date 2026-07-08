@@ -51,8 +51,8 @@
 | Что | Адрес |
 |-----|-------|
 | **Kinetix (интерфейс)** | https://alexqartveli.github.io/crm/ |
-| **API** | https://kinetix-api.onrender.com |
-| **Swagger** | https://kinetix-api.onrender.com/docs |
+| **API** | https://crm-ced4.onrender.com |
+| **Swagger** | https://crm-ced4.onrender.com/docs |
 
 > На бесплатном Render сервер «засыпает» после 15 мин бездействия. Первый запрос может занять ~30 сек.
 

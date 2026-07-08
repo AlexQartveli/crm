@@ -21,7 +21,7 @@
 2. **New → Blueprint** → репозиторий `AlexQartveli/crm`
 3. **Apply**
 
-API: https://kinetix-api.onrender.com
+API: https://crm-ced4.onrender.com
 
 > Первый запрос после простоя может идти ~30 секунд.
 
