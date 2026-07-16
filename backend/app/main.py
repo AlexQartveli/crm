@@ -9,12 +9,11 @@ from sqlalchemy import func
 from app.database import Base, SessionLocal, engine, migrate_schema
 from app.deps.tenant import TenantCtx, get_tenant_ctx
 from app.models.crm import Company, Contact, Deal, Lead
+from app.models.tenant import Tenant
 from app.models.messaging import Conversation
 from app.models.warehouse import Product, Stock
 from app.routers import accounting, auth, automations, crm, messaging, tenant, warehouse
-from app.seed import seed_database
-from app.seed_bots import seed_bots
-from app.seed_messaging import seed_messaging
+from app.seed_crm_template import seed_crm_template
 from app.seed_users import seed_users
 from app.middleware.auth import AuthMiddleware
 
@@ -50,9 +49,8 @@ def on_startup():
     db = SessionLocal()
     try:
         tenant_id = seed_users(db)
-        seed_database(db, tenant_id)
-        seed_messaging(db, tenant_id)
-        seed_bots(db, tenant_id)
+        tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
+        seed_crm_template(db, tenant_id, tenant.crm_type if tenant else "general")
     finally:
         db.close()
 

@@ -1,9 +1,11 @@
 import { useI18n } from './i18n/I18nContext'
 import type { Translations } from './i18n/translations'
+import { useCrmConfig } from './crm/CrmConfigContext'
+import { mapStatuses } from './crm/helpers'
 
 type StatusInfo = { label: string; color: string }
 
-function mapStatuses(
+function mapI18nStatuses(
   labels: Record<string, string>,
   colors: Record<string, string>,
 ): Record<string, StatusInfo> {
@@ -40,15 +42,36 @@ const INVOICE_COLORS: Record<string, string> = {
 export function useStatuses(): {
   dealStages: Record<string, StatusInfo>
   leadStatuses: Record<string, StatusInfo>
+  dealStageOrder: string[]
+  leadStatusOrder: string[]
   invoiceStatuses: Record<string, StatusInfo>
   movementTypes: Translations['movementTypes']
 } {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
+  const { config } = useCrmConfig()
+
+  const dealStages = config?.deal_stages?.length
+    ? mapStatuses(config.deal_stages, locale)
+    : mapI18nStatuses(t.dealStages, STAGE_COLORS)
+
+  const leadStatuses = config?.lead_statuses?.length
+    ? mapStatuses(config.lead_statuses, locale)
+    : mapI18nStatuses(t.leadStatuses, LEAD_COLORS)
+
+  const dealStageOrder = config?.deal_stages?.length
+    ? config.deal_stages.map((s) => s.key)
+    : Object.keys(t.dealStages)
+
+  const leadStatusOrder = config?.lead_statuses?.length
+    ? config.lead_statuses.map((s) => s.key)
+    : Object.keys(t.leadStatuses)
 
   return {
-    dealStages: mapStatuses(t.dealStages, STAGE_COLORS),
-    leadStatuses: mapStatuses(t.leadStatuses, LEAD_COLORS),
-    invoiceStatuses: mapStatuses(t.invoiceStatuses, INVOICE_COLORS),
+    dealStages,
+    leadStatuses,
+    dealStageOrder,
+    leadStatusOrder,
+    invoiceStatuses: mapI18nStatuses(t.invoiceStatuses, INVOICE_COLORS),
     movementTypes: t.movementTypes,
   }
 }

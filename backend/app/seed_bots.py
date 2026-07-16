@@ -5,9 +5,23 @@ from sqlalchemy.orm import Session
 from app.models.automation import BotAction, BotTrigger, ChatBot, MessageTemplate
 
 
-def seed_bots(db: Session, tenant_id: int) -> None:
+def seed_bots(db: Session, tenant_id: int, crm_type: str = "general") -> None:
     if db.query(ChatBot).filter(ChatBot.tenant_id == tenant_id).count() > 0:
         return
+
+    welcome_texts = {
+        "general": "Здравствуйте! Спасибо за обращение. Менеджер свяжется с вами в ближайшее время.",
+        "education": "Gamarjoba! Madloba interesistvis. Shevigzavt tqven chanawer da dagikavshirdit.",
+        "factory": "Здравствуйте! Отдел продаж обработает ваш запрос на поставку.",
+        "retail": "Gamarjoba! Madloba shekvetistvis. Male dagikavshirdit.",
+        "hospitality": "Welcome! Thank you for contacting us. We will confirm your booking shortly.",
+        "construction": "Здравствуйте! Оценим ваш проект и свяжемся для уточнения деталей.",
+        "agriculture": "Gamarjoba! Свяжемся для обсуждения объёма и условий поставки.",
+        "medical": "Здравствуйте! Администратор клиники запишет вас на приём.",
+        "logistics": "Здравствуйте! Рассчитаем стоимость перевозки и ответим в течение часа.",
+        "services": "Здравствуйте! Обсудим ваш проект и подготовим коммерческое предложение.",
+    }
+    welcome_msg = welcome_texts.get(crm_type, welcome_texts["general"])
 
     welcome = ChatBot(
         tenant_id=tenant_id,
@@ -15,7 +29,7 @@ def seed_bots(db: Session, tenant_id: int) -> None:
         description="Автоответ на первое сообщение и создание лида",
         channels="all",
         is_active=True,
-        welcome_message="Здравствуйте! Спасибо за обращение в Kinetix. Менеджер свяжется с вами в ближайшее время.",
+        welcome_message=welcome_msg,
         priority=10,
     )
     db.add(welcome)
@@ -29,7 +43,7 @@ def seed_bots(db: Session, tenant_id: int) -> None:
     db.add(BotAction(
         bot_id=welcome.id,
         action_type="send_message",
-        config=json.dumps({"text": "Здравствуйте! Спасибо за обращение в Kinetix. Менеджер свяжется с вами в ближайшее время."}),
+        config=json.dumps({"text": welcome_msg}),
         sort_order=0,
     ))
     db.add(BotAction(

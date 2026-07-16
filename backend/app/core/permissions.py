@@ -127,6 +127,7 @@ _PUBLIC_PREFIXES = (
     "/api/health",
     "/api/auth/login",
     "/api/auth/register",
+    "/api/auth/crm-types",
     "/api/messaging/webhooks/",
 )
 
@@ -216,6 +217,7 @@ _ROUTE_RULES: list[tuple[re.Pattern[str], dict[str, str]]] = [
 _AUTH_ONLY_PATHS = (
     "/api/auth/me",
     "/api/auth/logout",
+    "/api/auth/crm-config",
 )
 
 

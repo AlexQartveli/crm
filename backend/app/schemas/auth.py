@@ -18,12 +18,26 @@ class RegisterRequest(BaseModel):
     admin_email: str | None = None
     company_email: str | None = None
     company_phone: str | None = None
+    crm_type: str = "general"
+
+
+class CrmTypeResponse(BaseModel):
+    id: str
+    label_ru: str
+    label_en: str
+    label_ka: str
+    desc_ru: str
+    desc_en: str
+    desc_ka: str
+    icon: str
+    features: list[str]
 
 
 class TenantResponse(BaseModel):
     id: int
     name: str
     slug: str
+    crm_type: str
     email: str | None = None
     phone: str | None = None
     address: str | None = None

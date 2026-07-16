@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import Enum
 
-from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import JSON, DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -36,6 +36,7 @@ class Lead(Base):
     status: Mapped[str] = mapped_column(String(50), default=LeadStatus.NEW.value)
     amount: Mapped[float] = mapped_column(Float, default=0.0)
     comment: Mapped[str | None] = mapped_column(Text, nullable=True)
+    custom_data: Mapped[dict | None] = mapped_column(JSON, nullable=True, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
@@ -53,6 +54,7 @@ class Company(Base):
     email: Mapped[str | None] = mapped_column(String(255), nullable=True)
     address: Mapped[str | None] = mapped_column(String(500), nullable=True)
     comment: Mapped[str | None] = mapped_column(Text, nullable=True)
+    custom_data: Mapped[dict | None] = mapped_column(JSON, nullable=True, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     contacts: Mapped[list["Contact"]] = relationship(back_populates="company")
@@ -72,6 +74,7 @@ class Contact(Base):
         Integer, ForeignKey("companies.id"), nullable=True
     )
     comment: Mapped[str | None] = mapped_column(Text, nullable=True)
+    custom_data: Mapped[dict | None] = mapped_column(JSON, nullable=True, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     company: Mapped["Company | None"] = relationship(back_populates="contacts")
@@ -93,6 +96,7 @@ class Deal(Base):
         Integer, ForeignKey("companies.id"), nullable=True
     )
     comment: Mapped[str | None] = mapped_column(Text, nullable=True)
+    custom_data: Mapped[dict | None] = mapped_column(JSON, nullable=True, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow, onupdate=datetime.utcnow

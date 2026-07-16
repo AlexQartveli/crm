@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class LeadBase(BaseModel):
@@ -12,6 +12,7 @@ class LeadBase(BaseModel):
     status: str = "new"
     amount: float = 0.0
     comment: str | None = None
+    custom_data: dict = Field(default_factory=dict)
 
 
 class LeadCreate(LeadBase):
@@ -27,6 +28,7 @@ class LeadUpdate(BaseModel):
     status: str | None = None
     amount: float | None = None
     comment: str | None = None
+    custom_data: dict | None = None
 
 
 class LeadResponse(LeadBase):
@@ -44,6 +46,7 @@ class CompanyBase(BaseModel):
     email: str | None = None
     address: str | None = None
     comment: str | None = None
+    custom_data: dict = Field(default_factory=dict)
 
 
 class CompanyCreate(CompanyBase):
@@ -57,6 +60,7 @@ class CompanyUpdate(BaseModel):
     email: str | None = None
     address: str | None = None
     comment: str | None = None
+    custom_data: dict | None = None
 
 
 class CompanyResponse(CompanyBase):
@@ -73,6 +77,7 @@ class ContactBase(BaseModel):
     position: str | None = None
     company_id: int | None = None
     comment: str | None = None
+    custom_data: dict = Field(default_factory=dict)
 
 
 class ContactCreate(ContactBase):
@@ -86,6 +91,7 @@ class ContactUpdate(BaseModel):
     position: str | None = None
     company_id: int | None = None
     comment: str | None = None
+    custom_data: dict | None = None
 
 
 class ContactResponse(ContactBase):
@@ -119,6 +125,7 @@ class DealBase(BaseModel):
     contact_id: int | None = None
     company_id: int | None = None
     comment: str | None = None
+    custom_data: dict = Field(default_factory=dict)
 
 
 class DealCreate(DealBase):
@@ -132,6 +139,7 @@ class DealUpdate(BaseModel):
     contact_id: int | None = None
     company_id: int | None = None
     comment: str | None = None
+    custom_data: dict | None = None
 
 
 class DealResponse(DealBase):

@@ -1,16 +1,22 @@
 import { useEffect, useState } from 'react'
 import { Plus } from 'lucide-react'
 import { api, Product } from '../api/client'
+import CustomFieldsForm from '../components/CustomFieldsForm'
 import Modal from '../components/Modal'
 import CardActions, { RowActions } from '../components/CardActions'
 import Page, { TableWrap, Loading, Empty } from '../components/Page'
+import { useCrmConfig } from '../crm/CrmConfigContext'
+import { formatCustomValue } from '../crm/helpers'
 import { useI18n } from '../i18n/I18nContext'
 import { formatMoney } from '../utils'
 
-const emptyForm = { name: '', sku: '', unit: 'шт', price: 0, description: '' }
+const emptyForm = { name: '', sku: '', unit: 'шт', price: 0, description: '', custom_data: {} as Record<string, unknown> }
 
 export default function Products() {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
+  const { entityLabel, listFieldsFor } = useCrmConfig()
+  const customListFields = listFieldsFor('products')
+  const pageTitle = entityLabel('products', t.products.title)
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [modalOpen, setModalOpen] = useState(false)
@@ -26,7 +32,7 @@ export default function Products() {
   const openCreate = () => { setEditingId(null); setForm(emptyForm); setModalOpen(true) }
   const openEdit = (p: Product) => {
     setEditingId(p.id)
-    setForm({ name: p.name, sku: p.sku || '', unit: p.unit, price: p.price, description: p.description || '' })
+    setForm({ name: p.name, sku: p.sku || '', unit: p.unit, price: p.price, description: p.description || '', custom_data: p.custom_data || {} })
     setModalOpen(true)
   }
 
@@ -48,7 +54,7 @@ export default function Products() {
 
   return (
     <Page
-      title={t.products.title}
+      title={pageTitle}
       action={<button className="btn-primary flex items-center gap-2" onClick={openCreate}><Plus size={18} /> {t.common.add}</button>}
     >
       {products.length === 0 ? (
@@ -79,6 +85,11 @@ export default function Products() {
                     <th className="text-left p-3 font-medium">{t.common.sku}</th>
                     <th className="text-right p-3 font-medium">{t.common.price}</th>
                     <th className="text-right p-3 font-medium">{t.common.inStock}</th>
+                    {customListFields.map((f) => (
+                      <th key={f.key} className="text-left p-3 font-medium">
+                        {locale === 'en' ? f.label_en : locale === 'ka' ? f.label_ka : f.label_ru}
+                      </th>
+                    ))}
                     <th className="p-3"></th>
                   </tr>
                 </thead>
@@ -89,6 +100,9 @@ export default function Products() {
                       <td className="p-3 text-app-text-muted">{p.sku || t.common.dash}</td>
                       <td className="p-3 text-right">{formatMoney(p.price)}</td>
                       <td className="p-3 text-right"><span className={p.total_stock > 0 ? 'text-green-600 dark:text-green-400 font-medium' : 'text-red-500 dark:text-red-400'}>{p.total_stock}</span></td>
+                      {customListFields.map((f) => (
+                        <td key={f.key} className="p-3">{formatCustomValue(f, p.custom_data?.[f.key], locale)}</td>
+                      ))}
                       <td className="p-3"><RowActions onEdit={() => openEdit(p)} onDelete={() => handleDelete(p.id)} /></td>
                     </tr>
                   ))}
@@ -107,6 +121,7 @@ export default function Products() {
             <div><label className="label">{t.common.unit}</label><input className="input" value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} /></div>
             <div><label className="label">{t.common.price}</label><input className="input" type="number" value={form.price} onChange={(e) => setForm({ ...form, price: +e.target.value })} /></div>
           </div>
+          <CustomFieldsForm entity="products" values={form.custom_data} onChange={(custom_data) => setForm({ ...form, custom_data })} />
           <div className="flex justify-end gap-3 pt-2">
             <button type="button" className="btn-secondary" onClick={() => setModalOpen(false)}>{t.common.cancel}</button>
             <button type="submit" className="btn-primary">{editingId ? t.common.save : t.common.create}</button>

@@ -1,15 +1,16 @@
 import { useEffect, useState } from 'react'
 import { Building2, User } from 'lucide-react'
-import { api, TenantRecord } from '../api/client'
+import { api, CrmType, TenantRecord } from '../api/client'
 import { useAuth } from '../auth/AuthContext'
 import Page, { Loading } from '../components/Page'
 import { useI18n } from '../i18n/I18nContext'
 
 export default function Cabinet() {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const { user, refresh } = useAuth()
   const [tab, setTab] = useState<'profile' | 'company'>('profile')
   const [tenant, setTenant] = useState<TenantRecord | null>(null)
+  const [crmTypes, setCrmTypes] = useState<CrmType[]>([])
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState('')
   const [profile, setProfile] = useState({ full_name: '', email: '' })
@@ -19,9 +20,14 @@ export default function Cabinet() {
   const canEditCompany = user?.role === 'admin' || user?.role === 'director'
 
   useEffect(() => {
-    Promise.all([api.tenant.get(), user ? Promise.resolve(user) : api.auth.me()])
-      .then(([tnt, me]) => {
+    Promise.all([
+      api.tenant.get(),
+      api.auth.crmTypes(),
+      user ? Promise.resolve(user) : api.auth.me(),
+    ])
+      .then(([tnt, types, me]) => {
         setTenant(tnt)
+        setCrmTypes(types)
         setProfile({ full_name: me.full_name, email: me.email || '' })
         setCompany({ name: tnt.name, email: tnt.email || '', phone: tnt.phone || '', address: tnt.address || '' })
       })
@@ -29,6 +35,14 @@ export default function Cabinet() {
   }, [user])
 
   if (loading) return <Loading />
+
+  const crmTypeLabel = (() => {
+    const type = crmTypes.find((c) => c.id === tenant?.crm_type)
+    if (!type) return tenant?.crm_type || t.common.dash
+    if (locale === 'en') return type.label_en
+    if (locale === 'ka') return type.label_ka
+    return type.label_ru
+  })()
 
   const saveProfile = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -94,6 +108,7 @@ export default function Cabinet() {
       {tab === 'company' && tenant && (
         <form onSubmit={saveCompany} className="card p-6 space-y-4 max-w-xl">
           <h2 className="font-semibold">{t.cabinet.companyTab}</h2>
+          <div><label className="label">{t.auth.crmType}</label><input className="input" value={crmTypeLabel} disabled /></div>
           <div><label className="label">{t.auth.companyCode}</label><input className="input" value={tenant.slug} disabled /></div>
           <div><label className="label">{t.auth.companyName}</label><input className="input" value={company.name} disabled={!canEditCompany} onChange={(e) => setCompany({ ...company, name: e.target.value })} /></div>
           <div><label className="label">{t.common.email}</label><input className="input" type="email" value={company.email} disabled={!canEditCompany} onChange={(e) => setCompany({ ...company, email: e.target.value })} /></div>

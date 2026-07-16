@@ -4,19 +4,31 @@ import { Plus, Trash2, MessageCircle } from 'lucide-react'
 import { api, Lead } from '../api/client'
 import { useAuth } from '../auth/AuthContext'
 import { PERM } from '../auth/permissions'
+import CustomFieldsForm from '../components/CustomFieldsForm'
 import Modal from '../components/Modal'
+import { useCrmConfig } from '../crm/CrmConfigContext'
+import { formatCustomValue } from '../crm/helpers'
 import { useI18n } from '../i18n/I18nContext'
 import { useStatuses, formatDate, formatMoney } from '../utils'
 
+const emptyForm = {
+  title: '', name: '', phone: '', email: '', source: '', amount: 0,
+  custom_data: {} as Record<string, unknown>,
+}
+
 export default function Leads() {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const { can } = useAuth()
+  const { entityLabel, fieldHidden, listFieldsFor } = useCrmConfig()
   const canManage = can(PERM.leadsManage)
-  const { leadStatuses } = useStatuses()
+  const { leadStatuses, leadStatusOrder } = useStatuses()
+  const customListFields = listFieldsFor('leads')
   const [leads, setLeads] = useState<Lead[]>([])
   const [modalOpen, setModalOpen] = useState(false)
-  const [form, setForm] = useState({ title: '', name: '', phone: '', email: '', source: '', amount: 0 })
+  const [form, setForm] = useState(emptyForm)
   const [convCounts, setConvCounts] = useState<Record<number, number>>({})
+
+  const pageTitle = entityLabel('leads', t.leads.title)
 
   const load = () => {
     Promise.all([api.leads.list(), api.messaging.conversations.list()])
@@ -36,7 +48,7 @@ export default function Leads() {
     e.preventDefault()
     await api.leads.create(form)
     setModalOpen(false)
-    setForm({ title: '', name: '', phone: '', email: '', source: '', amount: 0 })
+    setForm(emptyForm)
     load()
   }
 
@@ -54,7 +66,7 @@ export default function Leads() {
   return (
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="page-title">{t.leads.title}</h1>
+        <h1 className="page-title">{pageTitle}</h1>
         {canManage && (
         <button className="btn-primary flex items-center gap-2" onClick={() => setModalOpen(true)}>
           <Plus size={18} /> {t.leads.add}
@@ -69,9 +81,14 @@ export default function Leads() {
               <th className="text-left p-4 font-medium">{t.common.title}</th>
               <th className="text-left p-4 font-medium">{t.common.contact}</th>
               <th className="text-left p-4 font-medium">{t.common.phone}</th>
-              <th className="text-left p-4 font-medium">{t.common.source}</th>
+              {!fieldHidden('leads', 'source') && <th className="text-left p-4 font-medium">{t.common.source}</th>}
+              {customListFields.map((f) => (
+                <th key={f.key} className="text-left p-4 font-medium">
+                  {locale === 'en' ? f.label_en : locale === 'ka' ? f.label_ka : f.label_ru}
+                </th>
+              ))}
               <th className="text-left p-4 font-medium">{t.common.status}</th>
-              <th className="text-right p-4 font-medium">{t.common.amount}</th>
+              {!fieldHidden('leads', 'amount') && <th className="text-right p-4 font-medium">{t.common.amount}</th>}
               <th className="text-left p-4 font-medium">{t.common.date}</th>
               <th className="text-left p-4 font-medium">{t.leads.messengerDialogs}</th>
               <th className="p-4"></th>
@@ -83,7 +100,12 @@ export default function Leads() {
                 <td className="p-4 font-medium">{lead.title}</td>
                 <td className="p-4">{lead.name || t.common.dash}</td>
                 <td className="p-4">{lead.phone || t.common.dash}</td>
-                <td className="p-4">{lead.source || t.common.dash}</td>
+                {!fieldHidden('leads', 'source') && <td className="p-4">{lead.source || t.common.dash}</td>}
+                {customListFields.map((f) => (
+                  <td key={f.key} className="p-4">
+                    {formatCustomValue(f, lead.custom_data?.[f.key], locale)}
+                  </td>
+                ))}
                 <td className="p-4">
                   {canManage ? (
                   <select
@@ -91,8 +113,8 @@ export default function Leads() {
                     onChange={(e) => handleStatusChange(lead.id, e.target.value)}
                     className={`text-xs font-medium px-2 py-1 rounded-full border-0 cursor-pointer ${leadStatuses[lead.status]?.color || ''}`}
                   >
-                    {Object.entries(leadStatuses).map(([k, v]) => (
-                      <option key={k} value={k}>{v.label}</option>
+                    {leadStatusOrder.map((k) => (
+                      <option key={k} value={k}>{leadStatuses[k]?.label || k}</option>
                     ))}
                   </select>
                   ) : (
@@ -101,7 +123,7 @@ export default function Leads() {
                     </span>
                   )}
                 </td>
-                <td className="p-4 text-right">{formatMoney(lead.amount)}</td>
+                {!fieldHidden('leads', 'amount') && <td className="p-4 text-right">{formatMoney(lead.amount)}</td>}
                 <td className="p-4 text-app-text-muted">{formatDate(lead.created_at)}</td>
                 <td className="p-4">
                   {convCounts[lead.id] ? (
@@ -145,15 +167,24 @@ export default function Leads() {
               <label className="label">{t.common.email}</label>
               <input className="input" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
             </div>
+            {!fieldHidden('leads', 'source') && (
             <div>
               <label className="label">{t.common.source}</label>
               <input className="input" value={form.source} onChange={(e) => setForm({ ...form, source: e.target.value })} />
             </div>
+            )}
           </div>
+          {!fieldHidden('leads', 'amount') && (
           <div>
             <label className="label">{t.common.amount}</label>
             <input className="input" type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: +e.target.value })} />
           </div>
+          )}
+          <CustomFieldsForm
+            entity="leads"
+            values={form.custom_data}
+            onChange={(custom_data) => setForm({ ...form, custom_data })}
+          />
           <div className="flex justify-end gap-3 pt-2">
             <button type="button" className="btn-secondary" onClick={() => setModalOpen(false)}>{t.common.cancel}</button>
             <button type="submit" className="btn-primary">{t.common.create}</button>

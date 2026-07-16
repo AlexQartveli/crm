@@ -3,6 +3,8 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.core.crm_config import config_to_api
+from app.core.crm_types import CRM_TYPES
 from app.core.permissions import ALL_ROLES, ROLE_LABELS, get_role_permissions
 from app.core.security import create_access_token, hash_password, verify_password
 from app.database import get_db
@@ -13,6 +15,7 @@ from app.models.user import User
 from app.schemas.auth import (
     AuthUserResponse,
     ChangePasswordRequest,
+    CrmTypeResponse,
     LoginRequest,
     ProfileUpdate,
     RegisterRequest,
@@ -48,6 +51,29 @@ def _auth_user(user: User, tenant: Tenant) -> AuthUserResponse:
     )
 
 
+@router.get("/crm-types", response_model=list[CrmTypeResponse])
+def list_crm_types():
+    return [
+        CrmTypeResponse(
+            id=t.id,
+            label_ru=t.label_ru,
+            label_en=t.label_en,
+            label_ka=t.label_ka,
+            desc_ru=t.desc_ru,
+            desc_en=t.desc_en,
+            desc_ka=t.desc_ka,
+            icon=t.icon,
+            features=list(t.features),
+        )
+        for t in CRM_TYPES.values()
+    ]
+
+
+@router.get("/crm-config")
+def get_crm_config(ctx: TenantCtx = Depends(get_tenant_ctx)):
+    return config_to_api(ctx.tenant.crm_type or "general")
+
+
 @router.post("/register", response_model=TokenResponse, status_code=201)
 def register(data: RegisterRequest, db: Session = Depends(get_db)):
     try:
@@ -61,6 +87,7 @@ def register(data: RegisterRequest, db: Session = Depends(get_db)):
             admin_email=data.admin_email,
             company_email=data.company_email,
             company_phone=data.company_phone,
+            crm_type=data.crm_type,
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e

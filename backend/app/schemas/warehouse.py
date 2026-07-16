@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ProductBase(BaseModel):
@@ -9,6 +9,7 @@ class ProductBase(BaseModel):
     unit: str = "шт"
     price: float = 0.0
     description: str | None = None
+    custom_data: dict = Field(default_factory=dict)
 
 
 class ProductCreate(ProductBase):
@@ -21,6 +22,7 @@ class ProductUpdate(BaseModel):
     unit: str | None = None
     price: float | None = None
     description: str | None = None
+    custom_data: dict | None = None
 
 
 class ProductResponse(ProductBase):

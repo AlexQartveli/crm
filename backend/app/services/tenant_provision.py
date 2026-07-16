@@ -2,12 +2,13 @@
 
 from sqlalchemy.orm import Session
 
+from app.core.crm_types import DEFAULT_CRM_TYPE, is_valid_crm_type
 from app.core.security import hash_password
 from app.models.accounting import RsgeSettings
 from app.models.messaging import MessagingSettings
 from app.models.tenant import Tenant, normalize_slug
 from app.models.user import User
-from app.models.warehouse import Warehouse
+from app.seed_crm_template import seed_crm_template
 
 
 def slug_available(db: Session, slug: str) -> bool:
@@ -25,6 +26,7 @@ def provision_tenant(
     admin_email: str | None = None,
     company_email: str | None = None,
     company_phone: str | None = None,
+    crm_type: str = DEFAULT_CRM_TYPE,
 ) -> tuple[Tenant, User]:
     normalized = normalize_slug(slug)
     if not normalized:
@@ -32,11 +34,14 @@ def provision_tenant(
     if not slug_available(db, normalized):
         raise ValueError("Компания с таким кодом уже существует")
 
+    crm = crm_type if is_valid_crm_type(crm_type) else DEFAULT_CRM_TYPE
+
     tenant = Tenant(
         name=company_name.strip(),
         slug=normalized,
         email=company_email,
         phone=company_phone,
+        crm_type=crm,
     )
     db.add(tenant)
     db.flush()
@@ -50,12 +55,12 @@ def provision_tenant(
         hashed_password=hash_password(admin_password),
     )
     db.add(admin)
-
     db.add(MessagingSettings(tenant_id=tenant.id))
     db.add(RsgeSettings(tenant_id=tenant.id, company_tin="", username=""))
-    db.add(Warehouse(tenant_id=tenant.id, name="Основной склад", is_default=True))
 
     db.commit()
     db.refresh(tenant)
     db.refresh(admin)
+
+    seed_crm_template(db, tenant.id, crm)
     return tenant, admin

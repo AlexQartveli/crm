@@ -51,6 +51,7 @@ const ru = {
     registerTitle: 'Регистрация компании',
     registerSubtitle: 'Создайте изолированный кабинет CRM для вашей организации',
     registerError: 'Не удалось зарегистрировать компанию',
+    crmType: 'Тип CRM',
   },
   cabinet: {
     title: 'Личный кабинет',
@@ -417,6 +418,7 @@ const en: Translations = {
     registerTitle: 'Register company',
     registerSubtitle: 'Create an isolated CRM workspace for your organization',
     registerError: 'Registration failed',
+    crmType: 'CRM type',
   },
   cabinet: {
     title: 'Account',
@@ -755,6 +757,7 @@ const ka: Translations = {
     registerTitle: 'კომპანიის რეგისტრაცია',
     registerSubtitle: 'შექმენით CRM სივრცე თქვენი ორგანიზაციისთვის',
     registerError: 'რეგისტრაცია ვერ მოხერხდა',
+    crmType: 'CRM ტიპი',
   },
   cabinet: {
     title: 'პირადი კაბინეტი',

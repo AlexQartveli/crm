@@ -108,6 +108,8 @@ export const api = {
         method: 'POST',
         body: JSON.stringify({ company_slug: companySlug, username, password }),
       }),
+    crmTypes: () => request<CrmType[]>('/auth/crm-types'),
+    crmConfig: () => request<CrmConfig>('/auth/crm-config'),
     register: (data: RegisterInput) =>
       request<TokenResponse>('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
     me: () => request<AuthUser>('/auth/me'),
@@ -356,6 +358,7 @@ export interface Lead {
   status: string
   amount: number
   comment?: string
+  custom_data?: Record<string, unknown>
   created_at: string
   updated_at: string
 }
@@ -368,6 +371,7 @@ export interface Company {
   email?: string
   address?: string
   comment?: string
+  custom_data?: Record<string, unknown>
   created_at: string
 }
 
@@ -379,6 +383,7 @@ export interface Contact {
   position?: string
   company_id?: number
   comment?: string
+  custom_data?: Record<string, unknown>
   created_at: string
 }
 
@@ -390,6 +395,7 @@ export interface Deal {
   contact_id?: number
   company_id?: number
   comment?: string
+  custom_data?: Record<string, unknown>
   created_at: string
   updated_at: string
   products: DealProduct[]
@@ -413,6 +419,7 @@ export interface Product {
   unit: string
   price: number
   description?: string
+  custom_data?: Record<string, unknown>
   created_at: string
   total_stock: number
 }
@@ -629,6 +636,7 @@ export interface TenantRecord {
   id: number
   name: string
   slug: string
+  crm_type: string
   email?: string
   phone?: string
   address?: string
@@ -676,10 +684,47 @@ export interface UserCreateInput {
 export interface RegisterInput {
   company_name: string
   company_slug: string
+  crm_type: string
   admin_username: string
   admin_password: string
   admin_full_name: string
   admin_email?: string
   company_email?: string
   company_phone?: string
+}
+
+export interface CrmType {
+  id: string
+  label_ru: string
+  label_en: string
+  label_ka: string
+  desc_ru: string
+  desc_en: string
+  desc_ka: string
+  icon: string
+  features: string[]
+}
+
+export interface CrmFieldDef {
+  key: string
+  type: 'text' | 'number' | 'date' | 'select' | 'textarea' | 'phone' | 'email'
+  label_ru: string
+  label_en: string
+  label_ka: string
+  required?: boolean
+  show_in_list?: boolean
+  options?: Array<{ id: string; label_ru: string; label_en: string; label_ka: string }>
+}
+
+export interface CrmConfig {
+  crm_type: string
+  label_ru: string
+  label_en: string
+  label_ka: string
+  modules: string[]
+  labels: Record<string, { ru: string; en: string; ka: string }>
+  fields: Record<string, CrmFieldDef[]>
+  deal_stages: Array<{ key: string; label_ru: string; label_en: string; label_ka: string; color: string }>
+  lead_statuses: Array<{ key: string; label_ru: string; label_en: string; label_ka: string; color: string }>
+  hide_base_fields: Record<string, string[]>
 }

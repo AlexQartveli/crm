@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import AuthGuard from './components/AuthGuard'
 import Layout from './components/Layout'
+import ModuleGuard from './components/ModuleGuard'
 import Dashboard from './pages/Dashboard'
 import Leads from './pages/Leads'
 import Deals from './pages/Deals'
@@ -26,6 +27,7 @@ export default function App() {
       <Route path="/register" element={<Register />} />
       <Route element={<AuthGuard />}>
         <Route element={<Layout />}>
+          <Route element={<ModuleGuard />}>
           <Route index element={<Dashboard />} />
           <Route path="leads" element={<Leads />} />
           <Route path="deals" element={<Deals />} />
@@ -41,6 +43,7 @@ export default function App() {
           <Route path="accounting/settings" element={<TaxSettings />} />
           <Route path="users" element={<Users />} />
           <Route path="cabinet" element={<Cabinet />} />
+          </Route>
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

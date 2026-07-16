@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import Enum
 
-from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import JSON, DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -25,6 +25,7 @@ class Product(Base):
     unit: Mapped[str] = mapped_column(String(20), default="шт")
     price: Mapped[float] = mapped_column(Float, default=0.0)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    custom_data: Mapped[dict | None] = mapped_column(JSON, nullable=True, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     stocks: Mapped[list["Stock"]] = relationship(back_populates="product")

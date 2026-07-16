@@ -90,6 +90,21 @@ def migrate_schema():
             "UPDATE users SET tenant_id = 1 WHERE tenant_id IS NULL OR tenant_id = 0"
         ))
 
+        if "tenants" in table_names:
+            tenant_cols = {col["name"] for col in inspector.get_columns("tenants")}
+            if "crm_type" not in tenant_cols:
+                conn.execute(text("ALTER TABLE tenants ADD COLUMN crm_type VARCHAR(30) DEFAULT 'general'"))
+                conn.execute(text("UPDATE tenants SET crm_type = 'general' WHERE crm_type IS NULL"))
+
+        _custom_data_tables = ("leads", "companies", "contacts", "deals", "products")
+        for table in _custom_data_tables:
+            if table not in table_names:
+                continue
+            cols = {col["name"] for col in inspector.get_columns(table)}
+            if "custom_data" not in cols:
+                conn.execute(text(f"ALTER TABLE {table} ADD COLUMN custom_data JSON"))
+                conn.execute(text(f"UPDATE {table} SET custom_data = '{{}}' WHERE custom_data IS NULL"))
+
 
 def ensure_default_tenant(db) -> int:
     from app.models.tenant import Tenant
@@ -98,7 +113,7 @@ def ensure_default_tenant(db) -> int:
     if tenant:
         return tenant.id
 
-    tenant = Tenant(name="Демо компания", slug="demo", email="demo@kinetix.local")
+    tenant = Tenant(name="Демо компания", slug="demo", email="demo@kinetix.local", crm_type="general")
     db.add(tenant)
     db.commit()
     db.refresh(tenant)

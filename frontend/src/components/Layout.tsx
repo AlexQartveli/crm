@@ -22,30 +22,32 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../auth/AuthContext'
 import { PERM, ROUTE_PERMISSIONS, ROLE_LABELS } from '../auth/permissions'
+import { useCrmConfig } from '../crm/CrmConfigContext'
 import { useI18n } from '../i18n/I18nContext'
 import HeaderControls from './HeaderControls'
 
 function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const { t, locale } = useI18n()
   const { user, can, logout } = useAuth()
+  const { entityLabel, moduleEnabled } = useCrmConfig()
 
   const navItems = [
-    { to: '/', icon: LayoutDashboard, label: t.nav.dashboard, permission: ROUTE_PERMISSIONS['/'] },
-    { to: '/leads', icon: UserPlus, label: t.nav.leads, permission: ROUTE_PERMISSIONS['/leads'] },
-    { to: '/deals', icon: Handshake, label: t.nav.deals, permission: ROUTE_PERMISSIONS['/deals'] },
-    { to: '/contacts', icon: Users, label: t.nav.contacts, permission: ROUTE_PERMISSIONS['/contacts'] },
-    { to: '/companies', icon: Building2, label: t.nav.companies, permission: ROUTE_PERMISSIONS['/companies'] },
-    { to: '/products', icon: Package, label: t.nav.products, permission: ROUTE_PERMISSIONS['/products'] },
-    { to: '/warehouse', icon: Warehouse, label: t.nav.warehouse, permission: ROUTE_PERMISSIONS['/warehouse'] },
-    { to: '/movements', icon: ArrowLeftRight, label: t.nav.movements, permission: ROUTE_PERMISSIONS['/movements'] },
-    { to: '/inbox', icon: MessageCircle, label: t.nav.inbox, permission: ROUTE_PERMISSIONS['/inbox'] },
-    { to: '/bots', icon: Bot, label: t.nav.bots, permission: ROUTE_PERMISSIONS['/bots'] },
-    { to: '/integrations', icon: Plug, label: t.nav.integrations, permission: ROUTE_PERMISSIONS['/integrations'] },
-    { to: '/accounting', icon: Calculator, label: t.nav.accounting, permission: ROUTE_PERMISSIONS['/accounting'] },
-    { to: '/accounting/settings', icon: Settings, label: t.nav.rsge, permission: ROUTE_PERMISSIONS['/accounting/settings'] },
-    { to: '/cabinet', icon: Settings2, label: t.nav.cabinet, permission: PERM.dashboard },
-    { to: '/users', icon: UserCog, label: t.nav.users, permission: PERM.usersManage },
-  ].filter((item) => can(item.permission))
+    { module: 'dashboard', to: '/', icon: LayoutDashboard, label: t.nav.dashboard, permission: ROUTE_PERMISSIONS['/'] },
+    { module: 'leads', to: '/leads', icon: UserPlus, label: entityLabel('leads', t.nav.leads), permission: ROUTE_PERMISSIONS['/leads'] },
+    { module: 'deals', to: '/deals', icon: Handshake, label: entityLabel('deals', t.nav.deals), permission: ROUTE_PERMISSIONS['/deals'] },
+    { module: 'contacts', to: '/contacts', icon: Users, label: entityLabel('contacts', t.nav.contacts), permission: ROUTE_PERMISSIONS['/contacts'] },
+    { module: 'companies', to: '/companies', icon: Building2, label: entityLabel('companies', t.nav.companies), permission: ROUTE_PERMISSIONS['/companies'] },
+    { module: 'products', to: '/products', icon: Package, label: entityLabel('products', t.nav.products), permission: ROUTE_PERMISSIONS['/products'] },
+    { module: 'warehouse', to: '/warehouse', icon: Warehouse, label: entityLabel('warehouse', t.nav.warehouse), permission: ROUTE_PERMISSIONS['/warehouse'] },
+    { module: 'movements', to: '/movements', icon: ArrowLeftRight, label: entityLabel('movements', t.nav.movements), permission: ROUTE_PERMISSIONS['/movements'] },
+    { module: 'inbox', to: '/inbox', icon: MessageCircle, label: t.nav.inbox, permission: ROUTE_PERMISSIONS['/inbox'] },
+    { module: 'bots', to: '/bots', icon: Bot, label: t.nav.bots, permission: ROUTE_PERMISSIONS['/bots'] },
+    { module: 'integrations', to: '/integrations', icon: Plug, label: t.nav.integrations, permission: ROUTE_PERMISSIONS['/integrations'] },
+    { module: 'accounting', to: '/accounting', icon: Calculator, label: t.nav.accounting, permission: ROUTE_PERMISSIONS['/accounting'] },
+    { module: 'accounting', to: '/accounting/settings', icon: Settings, label: t.nav.rsge, permission: ROUTE_PERMISSIONS['/accounting/settings'] },
+    { module: 'cabinet', to: '/cabinet', icon: Settings2, label: t.nav.cabinet, permission: PERM.dashboard },
+    { module: 'users', to: '/users', icon: UserCog, label: t.nav.users, permission: PERM.usersManage },
+  ].filter((item) => moduleEnabled(item.module) && can(item.permission))
 
   const roleLabel = user ? (ROLE_LABELS[user.role]?.[locale] || ROLE_LABELS[user.role]?.ru || user.role) : ''
 

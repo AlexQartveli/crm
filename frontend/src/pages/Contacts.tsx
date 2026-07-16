@@ -2,15 +2,21 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus, MessageCircle } from 'lucide-react'
 import { api, Contact, Company } from '../api/client'
+import CustomFieldsForm from '../components/CustomFieldsForm'
 import Modal from '../components/Modal'
 import CardActions, { RowActions } from '../components/CardActions'
 import Page, { TableWrap, Loading, Empty } from '../components/Page'
+import { useCrmConfig } from '../crm/CrmConfigContext'
+import { formatCustomValue } from '../crm/helpers'
 import { useI18n } from '../i18n/I18nContext'
 
-const emptyForm = { name: '', phone: '', email: '', position: '', company_id: 0 }
+const emptyForm = { name: '', phone: '', email: '', position: '', company_id: 0, custom_data: {} as Record<string, unknown> }
 
 export default function Contacts() {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
+  const { entityLabel, listFieldsFor } = useCrmConfig()
+  const customListFields = listFieldsFor('contacts')
+  const pageTitle = entityLabel('contacts', t.contacts.title)
   const [contacts, setContacts] = useState<Contact[]>([])
   const [companies, setCompanies] = useState<Company[]>([])
   const [loading, setLoading] = useState(true)
@@ -43,7 +49,7 @@ export default function Contacts() {
   const openCreate = () => { setEditingId(null); setForm(emptyForm); setModalOpen(true) }
   const openEdit = (c: Contact) => {
     setEditingId(c.id)
-    setForm({ name: c.name, phone: c.phone || '', email: c.email || '', position: c.position || '', company_id: c.company_id || 0 })
+    setForm({ name: c.name, phone: c.phone || '', email: c.email || '', position: c.position || '', company_id: c.company_id || 0, custom_data: c.custom_data || {} })
     setModalOpen(true)
   }
 
@@ -68,7 +74,7 @@ export default function Contacts() {
 
   return (
     <Page
-      title={t.contacts.title}
+      title={pageTitle}
       action={<button className="btn-primary flex items-center gap-2" onClick={openCreate}><Plus size={18} /> {t.common.add}</button>}
     >
       {contacts.length === 0 ? (
@@ -105,6 +111,11 @@ export default function Contacts() {
                     <th className="text-left p-3 font-medium">{t.common.company}</th>
                     <th className="text-left p-3 font-medium">{t.common.phone}</th>
                     <th className="text-left p-3 font-medium">{t.common.email}</th>
+                    {customListFields.map((f) => (
+                      <th key={f.key} className="text-left p-3 font-medium">
+                        {locale === 'en' ? f.label_en : locale === 'ka' ? f.label_ka : f.label_ru}
+                      </th>
+                    ))}
                     <th className="text-left p-3 font-medium">{t.contacts.messengerDialogs}</th>
                     <th className="p-3"></th>
                   </tr>
@@ -117,6 +128,9 @@ export default function Contacts() {
                       <td className="p-3">{companyName(c.company_id)}</td>
                       <td className="p-3">{c.phone || t.common.dash}</td>
                       <td className="p-3">{c.email || t.common.dash}</td>
+                      {customListFields.map((f) => (
+                        <td key={f.key} className="p-3">{formatCustomValue(f, c.custom_data?.[f.key], locale)}</td>
+                      ))}
                       <td className="p-3">
                         {convCounts[c.id] ? (
                           <Link to="/inbox" className="inline-flex items-center gap-1 text-kinetix-600 dark:text-kinetix-400">
@@ -148,6 +162,7 @@ export default function Contacts() {
               {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
+          <CustomFieldsForm entity="contacts" values={form.custom_data} onChange={(custom_data) => setForm({ ...form, custom_data })} />
           <div className="flex justify-end gap-3 pt-2">
             <button type="button" className="btn-secondary" onClick={() => setModalOpen(false)}>{t.common.cancel}</button>
             <button type="submit" className="btn-primary">{editingId ? t.common.save : t.common.create}</button>
