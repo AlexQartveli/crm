@@ -34,6 +34,10 @@ class AuthMiddleware(BaseHTTPMiddleware):
             if not user or not user.is_active:
                 return JSONResponse(status_code=401, content={"detail": "Пользователь не найден"})
 
+            token_tenant = payload.get("tenant_id")
+            if token_tenant is not None and int(token_tenant) != user.tenant_id:
+                return JSONResponse(status_code=401, content={"detail": "Недействительный токен"})
+
             permission = resolve_permission(method, path)
             if not permission_allowed(user.role, permission):
                 return JSONResponse(status_code=403, content={"detail": "Недостаточно прав"})

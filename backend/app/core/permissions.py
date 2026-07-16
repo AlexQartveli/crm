@@ -126,6 +126,7 @@ def has_any_permission(role: str, permissions: Iterable[str]) -> bool:
 _PUBLIC_PREFIXES = (
     "/api/health",
     "/api/auth/login",
+    "/api/auth/register",
     "/api/messaging/webhooks/",
 )
 
@@ -207,6 +208,9 @@ _ROUTE_RULES: list[tuple[re.Pattern[str], dict[str, str]]] = [
         "GET": PERM_USERS_MANAGE, "PATCH": PERM_USERS_MANAGE, "DELETE": PERM_USERS_MANAGE,
     }),
     (re.compile(r"^/api/auth/roles$"), {"GET": PERM_USERS_MANAGE}),
+    (re.compile(r"^/api/auth/profile$"), {"GET": "__authenticated__", "PATCH": "__authenticated__"}),
+    (re.compile(r"^/api/auth/change-password$"), {"POST": "__authenticated__"}),
+    (re.compile(r"^/api/tenant/me$"), {"GET": "__authenticated__", "PATCH": "__authenticated__"}),
 ]
 
 _AUTH_ONLY_PATHS = (

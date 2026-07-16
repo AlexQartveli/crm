@@ -18,6 +18,7 @@ import {
   Bot,
   UserCog,
   LogOut,
+  Settings2,
 } from 'lucide-react'
 import { useAuth } from '../auth/AuthContext'
 import { PERM, ROUTE_PERMISSIONS, ROLE_LABELS } from '../auth/permissions'
@@ -42,6 +43,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
     { to: '/integrations', icon: Plug, label: t.nav.integrations, permission: ROUTE_PERMISSIONS['/integrations'] },
     { to: '/accounting', icon: Calculator, label: t.nav.accounting, permission: ROUTE_PERMISSIONS['/accounting'] },
     { to: '/accounting/settings', icon: Settings, label: t.nav.rsge, permission: ROUTE_PERMISSIONS['/accounting/settings'] },
+    { to: '/cabinet', icon: Settings2, label: t.nav.cabinet, permission: PERM.dashboard },
     { to: '/users', icon: UserCog, label: t.nav.users, permission: PERM.usersManage },
   ].filter((item) => can(item.permission))
 
@@ -56,8 +58,9 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         </a>
         {user && (
           <div className="mt-3 text-xs text-kinetix-200">
-            <div className="font-medium truncate">{user.full_name}</div>
-            <div className="text-kinetix-400 truncate">{roleLabel}</div>
+            <div className="font-medium truncate">{user.tenant.name}</div>
+            <div className="truncate">{user.full_name}</div>
+            <div className="text-kinetix-400 truncate">{roleLabel} · {user.tenant.slug}</div>
           </div>
         )}
         <div className="hidden md:block">

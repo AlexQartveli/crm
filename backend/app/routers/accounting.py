@@ -1,9 +1,8 @@
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
 
-from app.database import get_db
+from app.deps.tenant import TenantCtx, get_tenant_ctx, scoped
 from app.models.accounting import InvoiceStatus, RsgeSettings, TaxInvoice
 from app.models.crm import Company, Deal
 from app.schemas.accounting import (
@@ -22,9 +21,17 @@ from app.services import rsge
 router = APIRouter(prefix="/accounting", tags=["Бухгалтерия"])
 
 
-def _invoice_response(inv: TaxInvoice, db: Session) -> TaxInvoiceResponse:
-    deal = db.query(Deal).filter(Deal.id == inv.deal_id).first() if inv.deal_id else None
-    company = db.query(Company).filter(Company.id == inv.company_id).first() if inv.company_id else None
+def _invoice_response(inv: TaxInvoice, ctx: TenantCtx) -> TaxInvoiceResponse:
+    deal = (
+        scoped(ctx, Deal).filter(Deal.id == inv.deal_id).first()
+        if inv.deal_id
+        else None
+    )
+    company = (
+        scoped(ctx, Company).filter(Company.id == inv.company_id).first()
+        if inv.company_id
+        else None
+    )
     return TaxInvoiceResponse(
         id=inv.id,
         number=inv.number,
@@ -50,16 +57,17 @@ def _invoice_response(inv: TaxInvoice, db: Session) -> TaxInvoiceResponse:
 
 
 @router.get("/invoices", response_model=list[TaxInvoiceResponse])
-def list_invoices(db: Session = Depends(get_db)):
-    invoices = db.query(TaxInvoice).order_by(TaxInvoice.created_at.desc()).all()
-    return [_invoice_response(inv, db) for inv in invoices]
+def list_invoices(ctx: TenantCtx = Depends(get_tenant_ctx)):
+    invoices = scoped(ctx, TaxInvoice).order_by(TaxInvoice.created_at.desc()).all()
+    return [_invoice_response(inv, ctx) for inv in invoices]
 
 
 @router.post("/invoices", response_model=TaxInvoiceResponse, status_code=201)
-def create_invoice(data: TaxInvoiceCreate, db: Session = Depends(get_db)):
+def create_invoice(data: TaxInvoiceCreate, ctx: TenantCtx = Depends(get_tenant_ctx)):
     vat, total = rsge.calc_vat(data.amount, data.vat_rate)
-    count = db.query(TaxInvoice).count()
+    count = scoped(ctx, TaxInvoice).count()
     inv = TaxInvoice(
+        tenant_id=ctx.tenant_id,
         number=f"INV-{datetime.now().year}-{count + 1:04d}",
         deal_id=data.deal_id,
         company_id=data.company_id,
@@ -74,15 +82,15 @@ def create_invoice(data: TaxInvoiceCreate, db: Session = Depends(get_db)):
         operation_date=datetime.utcnow(),
         status=InvoiceStatus.DRAFT.value,
     )
-    db.add(inv)
-    db.commit()
-    db.refresh(inv)
-    return _invoice_response(inv, db)
+    ctx.db.add(inv)
+    ctx.db.commit()
+    ctx.db.refresh(inv)
+    return _invoice_response(inv, ctx)
 
 
 @router.post("/invoices/{invoice_id}/sync", response_model=TaxInvoiceResponse)
-async def sync_invoice(invoice_id: int, db: Session = Depends(get_db)):
-    inv = db.query(TaxInvoice).filter(TaxInvoice.id == invoice_id).first()
+async def sync_invoice(invoice_id: int, ctx: TenantCtx = Depends(get_tenant_ctx)):
+    inv = scoped(ctx, TaxInvoice).filter(TaxInvoice.id == invoice_id).first()
     if not inv:
         raise HTTPException(status_code=404, detail="Счёт не найден")
 
@@ -97,16 +105,16 @@ async def sync_invoice(invoice_id: int, db: Session = Depends(get_db)):
         inv.rsge_invoice_id = result.get("invoice_id")
         inv.status = InvoiceStatus.SENT.value
         inv.synced_at = datetime.utcnow()
-        db.commit()
-        db.refresh(inv)
-        return _invoice_response(inv, db)
+        ctx.db.commit()
+        ctx.db.refresh(inv)
+        return _invoice_response(inv, ctx)
     except rsge.RsgeError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.post("/invoices/{invoice_id}/activate", response_model=TaxInvoiceResponse)
-async def activate_invoice(invoice_id: int, db: Session = Depends(get_db)):
-    inv = db.query(TaxInvoice).filter(TaxInvoice.id == invoice_id).first()
+async def activate_invoice(invoice_id: int, ctx: TenantCtx = Depends(get_tenant_ctx)):
+    inv = scoped(ctx, TaxInvoice).filter(TaxInvoice.id == invoice_id).first()
     if not inv or not inv.rsge_invoice_id:
         raise HTTPException(status_code=404, detail="Счёт не найден или не синхронизирован")
 
@@ -114,34 +122,35 @@ async def activate_invoice(invoice_id: int, db: Session = Depends(get_db)):
         ok = await rsge.activate_invoice_rsge(inv.rsge_invoice_id)
         if ok:
             inv.status = InvoiceStatus.ACTIVE.value
-            db.commit()
-            db.refresh(inv)
-        return _invoice_response(inv, db)
+            ctx.db.commit()
+            ctx.db.refresh(inv)
+        return _invoice_response(inv, ctx)
     except rsge.RsgeError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.get("/settings", response_model=RsgeSettingsResponse | None)
-def get_settings(db: Session = Depends(get_db)):
-    return db.query(RsgeSettings).first()
+def get_settings(ctx: TenantCtx = Depends(get_tenant_ctx)):
+    return scoped(ctx, RsgeSettings).first()
 
 
 @router.post("/settings", response_model=RsgeSettingsResponse)
-def save_settings(data: RsgeSettingsCreate, db: Session = Depends(get_db)):
-    settings = db.query(RsgeSettings).first()
+def save_settings(data: RsgeSettingsCreate, ctx: TenantCtx = Depends(get_tenant_ctx)):
+    settings = scoped(ctx, RsgeSettings).first()
     if not settings:
         settings = RsgeSettings(
+            tenant_id=ctx.tenant_id,
             company_tin=data.company_tin,
             username=data.username,
             password_enc=data.password,
         )
-        db.add(settings)
+        ctx.db.add(settings)
     else:
         settings.company_tin = data.company_tin
         settings.username = data.username
         settings.password_enc = data.password
-    db.commit()
-    db.refresh(settings)
+    ctx.db.commit()
+    ctx.db.refresh(settings)
     return RsgeSettingsResponse(
         id=settings.id,
         company_tin=settings.company_tin,
@@ -152,7 +161,7 @@ def save_settings(data: RsgeSettingsCreate, db: Session = Depends(get_db)):
 
 
 @router.post("/rsge/auth", response_model=RsgeAuthResponse)
-async def rsge_auth(data: RsgeAuthRequest, db: Session = Depends(get_db)):
+async def rsge_auth(data: RsgeAuthRequest, ctx: TenantCtx = Depends(get_tenant_ctx)):
     try:
         result = await rsge.authenticate(
             data.username, data.password,
@@ -160,11 +169,11 @@ async def rsge_auth(data: RsgeAuthRequest, db: Session = Depends(get_db)):
         )
         if result.get("needs_pin"):
             return RsgeAuthResponse(success=False, needs_pin=True, pin_token=result.get("pin_token"))
-        settings = db.query(RsgeSettings).first()
+        settings = scoped(ctx, RsgeSettings).first()
         if settings:
             settings.is_connected = True
             settings.last_sync = datetime.utcnow()
-            db.commit()
+            ctx.db.commit()
         return RsgeAuthResponse(success=True, message="Подключено к RS.ge")
     except rsge.RsgeError as e:
         return RsgeAuthResponse(success=False, message=str(e))

@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { LogIn } from 'lucide-react'
+import { getCompanySlug } from '../api/client'
 import { useAuth } from '../auth/AuthContext'
 import { firstAllowedRoute } from '../auth/permissions'
 import { useI18n } from '../i18n/I18nContext'
@@ -8,6 +9,7 @@ import { useI18n } from '../i18n/I18nContext'
 export default function Login() {
   const { t } = useI18n()
   const { user, login } = useAuth()
+  const [companySlug, setCompanySlug] = useState(getCompanySlug() || 'demo')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -22,7 +24,7 @@ export default function Login() {
     setError('')
     setSubmitting(true)
     try {
-      const loggedIn = await login(username.trim(), password)
+      const loggedIn = await login(companySlug.trim(), username.trim(), password)
       window.location.hash = `#${firstAllowedRoute(loggedIn.permissions)}`
     } catch (err) {
       setError(err instanceof Error ? err.message : t.auth.loginError)
@@ -45,6 +47,17 @@ export default function Login() {
               {error}
             </div>
           )}
+          <div>
+            <label className="label">{t.auth.companyCode}</label>
+            <input
+              className="input"
+              value={companySlug}
+              onChange={(e) => setCompanySlug(e.target.value)}
+              placeholder="demo"
+              required
+            />
+            <p className="text-xs text-app-text-muted mt-1">{t.auth.companyCodeHint}</p>
+          </div>
           <div>
             <label className="label">{t.auth.username}</label>
             <input
@@ -72,15 +85,17 @@ export default function Login() {
           </button>
         </form>
 
-        <div className="mt-8 pt-6 border-t border-app-border">
+        <p className="text-center text-sm text-app-text-muted mt-6">
+          {t.auth.noAccount}{' '}
+          <Link to="/register" className="text-kinetix-600 hover:underline">{t.auth.register}</Link>
+        </p>
+
+        <div className="mt-6 pt-6 border-t border-app-border">
           <p className="text-xs text-app-text-muted mb-3">{t.auth.demoAccounts}</p>
+          <p className="text-xs text-app-text-secondary mb-2">{t.auth.demoCode}: <strong>demo</strong></p>
           <div className="grid grid-cols-2 gap-2 text-xs text-app-text-secondary">
             <div><strong>admin</strong> / admin123</div>
             <div><strong>sales</strong> / sales123</div>
-            <div><strong>operator</strong> / operator123</div>
-            <div><strong>warehouse</strong> / warehouse123</div>
-            <div><strong>accountant</strong> / accountant123</div>
-            <div><strong>director</strong> / director123</div>
           </div>
         </div>
       </div>

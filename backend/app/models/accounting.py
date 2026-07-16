@@ -20,6 +20,7 @@ class TaxInvoice(Base):
     __tablename__ = "tax_invoices"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    tenant_id: Mapped[int] = mapped_column(Integer, ForeignKey("tenants.id"), index=True)
     number: Mapped[str | None] = mapped_column(String(50), nullable=True)
     deal_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("deals.id"), nullable=True)
     company_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("companies.id"), nullable=True)
@@ -43,6 +44,7 @@ class RsgeSettings(Base):
     __tablename__ = "rsge_settings"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    tenant_id: Mapped[int] = mapped_column(Integer, ForeignKey("tenants.id"), unique=True, index=True)
     company_tin: Mapped[str] = mapped_column(String(20))
     username: Mapped[str] = mapped_column(String(100))
     password_enc: Mapped[str | None] = mapped_column(String(255), nullable=True)

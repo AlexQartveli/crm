@@ -40,6 +40,7 @@ export const ROUTE_PERMISSIONS: Record<string, Permission> = {
   '/accounting': PERM.accountingView,
   '/accounting/settings': PERM.accountingSettings,
   '/users': PERM.usersManage,
+  '/cabinet': PERM.dashboard,
 }
 
 export const ROLE_LABELS: Record<string, { ru: string; en: string; ka: string }> = {

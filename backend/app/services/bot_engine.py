@@ -85,6 +85,7 @@ async def _send_channel_message(conv: Conversation, body: str, settings_data: di
 
 def _store_outbound(db: Session, conv: Conversation, body: str, ext_id: str | None = None) -> Message:
     message = Message(
+        tenant_id=conv.tenant_id,
         conversation_id=conv.id,
         direction="outbound",
         body=body,
@@ -99,9 +100,18 @@ def _store_outbound(db: Session, conv: Conversation, body: str, ext_id: str | No
     return message
 
 
-def _log(db: Session, *, bot_id: int | None, conversation_id: int, trigger_type: str | None,
-         action_type: str | None, detail: str) -> None:
+def _log(
+    db: Session,
+    *,
+    tenant_id: int,
+    bot_id: int | None,
+    conversation_id: int,
+    trigger_type: str | None,
+    action_type: str | None,
+    detail: str,
+) -> None:
     db.add(BotLog(
+        tenant_id=tenant_id,
         bot_id=bot_id,
         conversation_id=conversation_id,
         trigger_type=trigger_type,
@@ -122,17 +132,19 @@ def _execute_action(
 ) -> None:
     cfg = _parse_config(action.config)
     atype = action.action_type
+    tenant_id = conv.tenant_id
 
     if atype == "send_message":
         text = cfg.get("text") or bot.welcome_message or ""
         if text:
             outbound_messages.append(text)
-            _log(db, bot_id=bot.id, conversation_id=conv.id, trigger_type=trigger_type,
+            _log(db, tenant_id=tenant_id, bot_id=bot.id, conversation_id=conv.id, trigger_type=trigger_type,
                  action_type=atype, detail=text[:500])
 
     elif atype == "create_lead":
         lead = ensure_lead_for_inbound(
             db,
+            tenant_id=tenant_id,
             channel=conv.channel,
             phone=conv.phone,
             contact_name=conv.contact_name,
@@ -143,20 +155,25 @@ def _execute_action(
             title = cfg.get("title")
             if title:
                 lead.title = title
-            _log(db, bot_id=bot.id, conversation_id=conv.id, trigger_type=trigger_type,
+            _log(db, tenant_id=tenant_id, bot_id=bot.id, conversation_id=conv.id, trigger_type=trigger_type,
                  action_type=atype, detail=f"Lead #{lead.id}")
 
     elif atype == "update_lead_status":
         if conv.lead_id:
-            lead = db.query(Lead).filter(Lead.id == conv.lead_id).first()
+            lead = (
+                db.query(Lead)
+                .filter(Lead.id == conv.lead_id, Lead.tenant_id == tenant_id)
+                .first()
+            )
             if lead and cfg.get("status"):
                 lead.status = cfg["status"]
                 lead.updated_at = datetime.utcnow()
-                _log(db, bot_id=bot.id, conversation_id=conv.id, trigger_type=trigger_type,
+                _log(db, tenant_id=tenant_id, bot_id=bot.id, conversation_id=conv.id, trigger_type=trigger_type,
                      action_type=atype, detail=f"status={cfg['status']}")
 
     elif atype == "create_deal":
         deal = Deal(
+            tenant_id=tenant_id,
             title=cfg.get("title") or f"Сделка из {conv.channel}: {conv.contact_name or conv.external_id}",
             amount=float(cfg.get("amount") or 0),
             stage=cfg.get("stage") or "new",
@@ -165,17 +182,21 @@ def _execute_action(
         )
         db.add(deal)
         db.flush()
-        _log(db, bot_id=bot.id, conversation_id=conv.id, trigger_type=trigger_type,
+        _log(db, tenant_id=tenant_id, bot_id=bot.id, conversation_id=conv.id, trigger_type=trigger_type,
              action_type=atype, detail=f"Deal #{deal.id}")
 
     elif atype == "add_lead_comment":
         if conv.lead_id:
-            lead = db.query(Lead).filter(Lead.id == conv.lead_id).first()
+            lead = (
+                db.query(Lead)
+                .filter(Lead.id == conv.lead_id, Lead.tenant_id == tenant_id)
+                .first()
+            )
             if lead:
                 note = cfg.get("text") or ""
                 lead.comment = f"{lead.comment or ''}\n{note}".strip()
                 lead.updated_at = datetime.utcnow()
-                _log(db, bot_id=bot.id, conversation_id=conv.id, trigger_type=trigger_type,
+                _log(db, tenant_id=tenant_id, bot_id=bot.id, conversation_id=conv.id, trigger_type=trigger_type,
                      action_type=atype, detail=note[:500])
 
 
@@ -185,13 +206,17 @@ def process_inbound_message(db: Session, conversation_id: int, message_body: str
     if not conv:
         return 0
 
-    settings = db.query(MessagingSettings).first()
+    settings = (
+        db.query(MessagingSettings)
+        .filter(MessagingSettings.tenant_id == conv.tenant_id)
+        .first()
+    )
     settings_data = _settings_dict(settings)
     is_first = _is_first_inbound(db, conv.id)
 
     bots = (
         db.query(ChatBot)
-        .filter(ChatBot.is_active.is_(True))
+        .filter(ChatBot.is_active.is_(True), ChatBot.tenant_id == conv.tenant_id)
         .order_by(ChatBot.priority.desc(), ChatBot.id.asc())
         .all()
     )
@@ -238,7 +263,7 @@ def process_inbound_message(db: Session, conversation_id: int, message_body: str
         for bot in bots:
             if bot.fallback_message and _bot_matches_channel(bot, conv.channel):
                 outbound_messages.append(bot.fallback_message)
-                _log(db, bot_id=bot.id, conversation_id=conv.id, trigger_type="fallback",
+                _log(db, tenant_id=conv.tenant_id, bot_id=bot.id, conversation_id=conv.id, trigger_type="fallback",
                      action_type="send_message", detail=bot.fallback_message[:500])
                 break
 
@@ -259,7 +284,7 @@ def process_inbound_message(db: Session, conversation_id: int, message_body: str
                 sent += 1
             except (meta_messaging.MetaMessagingError, telegram_messaging.TelegramError) as e:
                 _store_outbound(db, conv, text, None)
-                _log(db, bot_id=None, conversation_id=conv.id, trigger_type="error",
+                _log(db, tenant_id=conv.tenant_id, bot_id=None, conversation_id=conv.id, trigger_type="error",
                      action_type="send_message", detail=str(e))
                 sent += 1
 

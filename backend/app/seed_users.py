@@ -4,6 +4,9 @@ from sqlalchemy.orm import Session
 
 from app.core.permissions import ALL_ROLES
 from app.core.security import hash_password
+from app.database import ensure_default_tenant
+from app.models.accounting import RsgeSettings
+from app.models.messaging import MessagingSettings
 from app.models.user import User
 
 DEFAULT_USERS = [
@@ -16,14 +19,23 @@ DEFAULT_USERS = [
 ]
 
 
-def seed_users(db: Session) -> None:
-    if db.query(User).count() > 0:
-        return
+def seed_users(db: Session) -> int:
+    tenant_id = ensure_default_tenant(db)
+
+    if not db.query(MessagingSettings).filter(MessagingSettings.tenant_id == tenant_id).first():
+        db.add(MessagingSettings(tenant_id=tenant_id))
+    if not db.query(RsgeSettings).filter(RsgeSettings.tenant_id == tenant_id).first():
+        db.add(RsgeSettings(tenant_id=tenant_id, company_tin="", username=""))
+    db.commit()
+
+    if db.query(User).filter(User.tenant_id == tenant_id).count() > 0:
+        return tenant_id
 
     for username, password, full_name, role in DEFAULT_USERS:
         if role not in ALL_ROLES:
             continue
         db.add(User(
+            tenant_id=tenant_id,
             username=username,
             full_name=full_name,
             role=role,
@@ -31,3 +43,4 @@ def seed_users(db: Session) -> None:
             email=f"{username}@kinetix.local",
         ))
     db.commit()
+    return tenant_id

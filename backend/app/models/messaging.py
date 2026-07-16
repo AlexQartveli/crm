@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import Enum
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -20,8 +20,10 @@ class MessageDirection(str, Enum):
 
 class Conversation(Base):
     __tablename__ = "conversations"
+    __table_args__ = (UniqueConstraint("tenant_id", "channel", "external_id", name="uq_conv_tenant_channel_ext"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    tenant_id: Mapped[int] = mapped_column(Integer, ForeignKey("tenants.id"), index=True)
     channel: Mapped[str] = mapped_column(String(20), index=True)
     external_id: Mapped[str] = mapped_column(String(100), index=True)
     contact_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
@@ -49,6 +51,7 @@ class Message(Base):
     __tablename__ = "messages"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    tenant_id: Mapped[int] = mapped_column(Integer, ForeignKey("tenants.id"), index=True)
     conversation_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("conversations.id"), index=True
     )
@@ -66,6 +69,7 @@ class CallLog(Base):
     __tablename__ = "call_logs"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    tenant_id: Mapped[int] = mapped_column(Integer, ForeignKey("tenants.id"), index=True)
     channel: Mapped[str] = mapped_column(String(20), index=True)
     external_id: Mapped[str] = mapped_column(String(100), index=True)
     conversation_id: Mapped[int | None] = mapped_column(
@@ -89,6 +93,7 @@ class MessagingSettings(Base):
     __tablename__ = "messaging_settings"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    tenant_id: Mapped[int] = mapped_column(Integer, ForeignKey("tenants.id"), unique=True, index=True)
     whatsapp_token: Mapped[str | None] = mapped_column(String(500), nullable=True)
     whatsapp_phone_number_id: Mapped[str | None] = mapped_column(String(50), nullable=True)
     whatsapp_verify_token: Mapped[str | None] = mapped_column(String(100), nullable=True)

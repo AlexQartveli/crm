@@ -1,16 +1,17 @@
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import func
 
 from app.database import Base, SessionLocal, engine, migrate_schema
+from app.deps.tenant import TenantCtx, get_tenant_ctx
 from app.models.crm import Company, Contact, Deal, Lead
 from app.models.messaging import Conversation
-from app.models.warehouse import Product, Stock, Warehouse
-from app.routers import accounting, auth, automations, crm, messaging, warehouse
+from app.models.warehouse import Product, Stock
+from app.routers import accounting, auth, automations, crm, messaging, tenant, warehouse
 from app.seed import seed_database
 from app.seed_bots import seed_bots
 from app.seed_messaging import seed_messaging
@@ -36,6 +37,7 @@ app.add_middleware(
 app.add_middleware(AuthMiddleware)
 
 app.include_router(auth.router, prefix="/api")
+app.include_router(tenant.router, prefix="/api")
 app.include_router(crm.router, prefix="/api")
 app.include_router(warehouse.router, prefix="/api")
 app.include_router(accounting.router, prefix="/api")
@@ -47,10 +49,10 @@ app.include_router(automations.router, prefix="/api")
 def on_startup():
     db = SessionLocal()
     try:
-        seed_database(db)
-        seed_users(db)
-        seed_messaging(db)
-        seed_bots(db)
+        tenant_id = seed_users(db)
+        seed_database(db, tenant_id)
+        seed_messaging(db, tenant_id)
+        seed_bots(db, tenant_id)
     finally:
         db.close()
 
@@ -61,56 +63,74 @@ def health():
 
 
 @app.get("/api/dashboard")
-def dashboard():
-    db = SessionLocal()
-    try:
-        leads_count = db.query(func.count(Lead.id)).scalar() or 0
-        deals_count = db.query(func.count(Deal.id)).scalar() or 0
-        contacts_count = db.query(func.count(Contact.id)).scalar() or 0
-        companies_count = db.query(func.count(Company.id)).scalar() or 0
-        products_count = db.query(func.count(Product.id)).scalar() or 0
-        total_stock = db.query(func.sum(Stock.quantity)).scalar() or 0
+def dashboard(ctx: TenantCtx = Depends(get_tenant_ctx)):
+    tid = ctx.tenant_id
+    leads_count = (
+        ctx.db.query(func.count(Lead.id)).filter(Lead.tenant_id == tid).scalar() or 0
+    )
+    deals_count = (
+        ctx.db.query(func.count(Deal.id)).filter(Deal.tenant_id == tid).scalar() or 0
+    )
+    contacts_count = (
+        ctx.db.query(func.count(Contact.id)).filter(Contact.tenant_id == tid).scalar() or 0
+    )
+    companies_count = (
+        ctx.db.query(func.count(Company.id)).filter(Company.tenant_id == tid).scalar() or 0
+    )
+    products_count = (
+        ctx.db.query(func.count(Product.id)).filter(Product.tenant_id == tid).scalar() or 0
+    )
+    total_stock = (
+        ctx.db.query(func.sum(Stock.quantity)).filter(Stock.tenant_id == tid).scalar() or 0
+    )
 
-        deals_by_stage = (
-            db.query(Deal.stage, func.count(Deal.id))
-            .group_by(Deal.stage)
-            .all()
-        )
+    deals_by_stage = (
+        ctx.db.query(Deal.stage, func.count(Deal.id))
+        .filter(Deal.tenant_id == tid)
+        .group_by(Deal.stage)
+        .all()
+    )
 
-        won_amount = (
-            db.query(func.sum(Deal.amount))
-            .filter(Deal.stage == "won")
-            .scalar()
-            or 0
-        )
+    won_amount = (
+        ctx.db.query(func.sum(Deal.amount))
+        .filter(Deal.tenant_id == tid, Deal.stage == "won")
+        .scalar()
+        or 0
+    )
 
-        pipeline_amount = (
-            db.query(func.sum(Deal.amount))
-            .filter(Deal.stage.notin_(["won", "lost"]))
-            .scalar()
-            or 0
-        )
+    pipeline_amount = (
+        ctx.db.query(func.sum(Deal.amount))
+        .filter(Deal.tenant_id == tid, Deal.stage.notin_(["won", "lost"]))
+        .scalar()
+        or 0
+    )
 
-        unread_messages = (
-            db.query(func.coalesce(func.sum(Conversation.unread_count), 0)).scalar() or 0
-        )
-        conversations_count = db.query(func.count(Conversation.id)).scalar() or 0
+    unread_messages = (
+        ctx.db.query(func.coalesce(func.sum(Conversation.unread_count), 0))
+        .filter(Conversation.tenant_id == tid)
+        .scalar()
+        or 0
+    )
+    conversations_count = (
+        ctx.db.query(func.count(Conversation.id))
+        .filter(Conversation.tenant_id == tid)
+        .scalar()
+        or 0
+    )
 
-        return {
-            "leads": leads_count,
-            "deals": deals_count,
-            "contacts": contacts_count,
-            "companies": companies_count,
-            "products": products_count,
-            "total_stock": total_stock,
-            "won_amount": won_amount,
-            "pipeline_amount": pipeline_amount,
-            "deals_by_stage": {stage: count for stage, count in deals_by_stage},
-            "unread_messages": unread_messages,
-            "conversations": conversations_count,
-        }
-    finally:
-        db.close()
+    return {
+        "leads": leads_count,
+        "deals": deals_count,
+        "contacts": contacts_count,
+        "companies": companies_count,
+        "products": products_count,
+        "total_stock": total_stock,
+        "won_amount": won_amount,
+        "pipeline_amount": pipeline_amount,
+        "deals_by_stage": {stage: count for stage, count in deals_by_stage},
+        "unread_messages": unread_messages,
+        "conversations": conversations_count,
+    }
 
 
 def _mount_frontend(app: FastAPI) -> None:

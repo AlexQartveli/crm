@@ -5,11 +5,12 @@ from sqlalchemy.orm import Session
 from app.models.automation import BotAction, BotTrigger, ChatBot, MessageTemplate
 
 
-def seed_bots(db: Session) -> None:
-    if db.query(ChatBot).count() > 0:
+def seed_bots(db: Session, tenant_id: int) -> None:
+    if db.query(ChatBot).filter(ChatBot.tenant_id == tenant_id).count() > 0:
         return
 
     welcome = ChatBot(
+        tenant_id=tenant_id,
         name="Приветствие",
         description="Автоответ на первое сообщение и создание лида",
         channels="all",
@@ -45,6 +46,7 @@ def seed_bots(db: Session) -> None:
     ))
 
     price = ChatBot(
+        tenant_id=tenant_id,
         name="Запрос цены",
         description="Ответ на ключевые слова: цена, прайс, стоимость",
         channels="all",
@@ -92,6 +94,7 @@ def seed_bots(db: Session) -> None:
     ))
 
     deal_bot = ChatBot(
+        tenant_id=tenant_id,
         name="Создание сделки",
         description="При слове «заказ» создаёт сделку в CRM",
         channels="all",
@@ -132,6 +135,6 @@ def seed_bots(db: Session) -> None:
         ("Спасибо", "Спасибо за обращение! Хорошего дня.", "/thanks"),
     ]
     for title, body, shortcut in templates:
-        db.add(MessageTemplate(title=title, body=body, shortcut=shortcut))
+        db.add(MessageTemplate(tenant_id=tenant_id, title=title, body=body, shortcut=shortcut))
 
     db.commit()

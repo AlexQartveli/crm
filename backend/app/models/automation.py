@@ -10,6 +10,7 @@ class ChatBot(Base):
     __tablename__ = "chat_bots"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    tenant_id: Mapped[int] = mapped_column(Integer, ForeignKey("tenants.id"), index=True)
     name: Mapped[str] = mapped_column(String(255))
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     channels: Mapped[str] = mapped_column(String(100), default="all")
@@ -61,6 +62,7 @@ class MessageTemplate(Base):
     __tablename__ = "message_templates"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    tenant_id: Mapped[int] = mapped_column(Integer, ForeignKey("tenants.id"), index=True)
     title: Mapped[str] = mapped_column(String(255))
     body: Mapped[str] = mapped_column(Text)
     channel: Mapped[str | None] = mapped_column(String(20), nullable=True)
@@ -72,6 +74,7 @@ class BotLog(Base):
     __tablename__ = "bot_logs"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    tenant_id: Mapped[int] = mapped_column(Integer, ForeignKey("tenants.id"), index=True)
     bot_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("chat_bots.id"), nullable=True)
     conversation_id: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("conversations.id"), nullable=True

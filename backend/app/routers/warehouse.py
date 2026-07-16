@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
 
-from app.database import get_db
+from app.deps.tenant import TenantCtx, get_tenant_ctx, scoped
 from app.models.warehouse import MovementType, Product, Stock, StockMovement, Warehouse
 from app.schemas.warehouse import (
     ProductCreate,
@@ -14,14 +13,14 @@ from app.schemas.warehouse import (
     WarehouseResponse,
     WarehouseUpdate,
 )
-from app.services.stock import apply_movement, get_or_create_stock
+from app.services.stock import apply_movement
 
 router = APIRouter(prefix="/warehouse", tags=["Склад"])
 
 
 @router.get("/products", response_model=list[ProductResponse])
-def list_products(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    products = db.query(Product).order_by(Product.name).offset(skip).limit(limit).all()
+def list_products(skip: int = 0, limit: int = 100, ctx: TenantCtx = Depends(get_tenant_ctx)):
+    products = scoped(ctx, Product).order_by(Product.name).offset(skip).limit(limit).all()
     result = []
     for p in products:
         total = sum(s.quantity for s in p.stocks)
@@ -41,15 +40,15 @@ def list_products(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)
 
 
 @router.post("/products", response_model=ProductResponse, status_code=201)
-def create_product(data: ProductCreate, db: Session = Depends(get_db)):
+def create_product(data: ProductCreate, ctx: TenantCtx = Depends(get_tenant_ctx)):
     if data.sku:
-        existing = db.query(Product).filter(Product.sku == data.sku).first()
+        existing = scoped(ctx, Product).filter(Product.sku == data.sku).first()
         if existing:
             raise HTTPException(status_code=400, detail="Товар с таким артикулом уже существует")
-    product = Product(**data.model_dump())
-    db.add(product)
-    db.commit()
-    db.refresh(product)
+    product = Product(tenant_id=ctx.tenant_id, **data.model_dump())
+    ctx.db.add(product)
+    ctx.db.commit()
+    ctx.db.refresh(product)
     return ProductResponse(
         id=product.id,
         name=product.name,
@@ -63,8 +62,8 @@ def create_product(data: ProductCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/products/{product_id}", response_model=ProductResponse)
-def get_product(product_id: int, db: Session = Depends(get_db)):
-    product = db.query(Product).filter(Product.id == product_id).first()
+def get_product(product_id: int, ctx: TenantCtx = Depends(get_tenant_ctx)):
+    product = scoped(ctx, Product).filter(Product.id == product_id).first()
     if not product:
         raise HTTPException(status_code=404, detail="Товар не найден")
     total = sum(s.quantity for s in product.stocks)
@@ -81,14 +80,14 @@ def get_product(product_id: int, db: Session = Depends(get_db)):
 
 
 @router.patch("/products/{product_id}", response_model=ProductResponse)
-def update_product(product_id: int, data: ProductUpdate, db: Session = Depends(get_db)):
-    product = db.query(Product).filter(Product.id == product_id).first()
+def update_product(product_id: int, data: ProductUpdate, ctx: TenantCtx = Depends(get_tenant_ctx)):
+    product = scoped(ctx, Product).filter(Product.id == product_id).first()
     if not product:
         raise HTTPException(status_code=404, detail="Товар не найден")
     for key, value in data.model_dump(exclude_unset=True).items():
         setattr(product, key, value)
-    db.commit()
-    db.refresh(product)
+    ctx.db.commit()
+    ctx.db.refresh(product)
     total = sum(s.quantity for s in product.stocks)
     return ProductResponse(
         id=product.id,
@@ -103,43 +102,43 @@ def update_product(product_id: int, data: ProductUpdate, db: Session = Depends(g
 
 
 @router.delete("/products/{product_id}", status_code=204)
-def delete_product(product_id: int, db: Session = Depends(get_db)):
-    product = db.query(Product).filter(Product.id == product_id).first()
+def delete_product(product_id: int, ctx: TenantCtx = Depends(get_tenant_ctx)):
+    product = scoped(ctx, Product).filter(Product.id == product_id).first()
     if not product:
         raise HTTPException(status_code=404, detail="Товар не найден")
-    db.delete(product)
-    db.commit()
+    ctx.db.delete(product)
+    ctx.db.commit()
 
 
 @router.get("/warehouses", response_model=list[WarehouseResponse])
-def list_warehouses(db: Session = Depends(get_db)):
-    return db.query(Warehouse).order_by(Warehouse.name).all()
+def list_warehouses(ctx: TenantCtx = Depends(get_tenant_ctx)):
+    return scoped(ctx, Warehouse).order_by(Warehouse.name).all()
 
 
 @router.post("/warehouses", response_model=WarehouseResponse, status_code=201)
-def create_warehouse(data: WarehouseCreate, db: Session = Depends(get_db)):
+def create_warehouse(data: WarehouseCreate, ctx: TenantCtx = Depends(get_tenant_ctx)):
     if data.is_default:
-        db.query(Warehouse).update({Warehouse.is_default: False})
-    warehouse = Warehouse(**data.model_dump())
-    db.add(warehouse)
-    db.commit()
-    db.refresh(warehouse)
+        scoped(ctx, Warehouse).update({Warehouse.is_default: False})
+    warehouse = Warehouse(tenant_id=ctx.tenant_id, **data.model_dump())
+    ctx.db.add(warehouse)
+    ctx.db.commit()
+    ctx.db.refresh(warehouse)
     return warehouse
 
 
 @router.patch("/warehouses/{warehouse_id}", response_model=WarehouseResponse)
 def update_warehouse(
-    warehouse_id: int, data: WarehouseUpdate, db: Session = Depends(get_db)
+    warehouse_id: int, data: WarehouseUpdate, ctx: TenantCtx = Depends(get_tenant_ctx)
 ):
-    warehouse = db.query(Warehouse).filter(Warehouse.id == warehouse_id).first()
+    warehouse = scoped(ctx, Warehouse).filter(Warehouse.id == warehouse_id).first()
     if not warehouse:
         raise HTTPException(status_code=404, detail="Склад не найден")
     if data.is_default:
-        db.query(Warehouse).update({Warehouse.is_default: False})
+        scoped(ctx, Warehouse).update({Warehouse.is_default: False})
     for key, value in data.model_dump(exclude_unset=True).items():
         setattr(warehouse, key, value)
-    db.commit()
-    db.refresh(warehouse)
+    ctx.db.commit()
+    ctx.db.refresh(warehouse)
     return warehouse
 
 
@@ -147,9 +146,9 @@ def update_warehouse(
 def list_stocks(
     warehouse_id: int | None = None,
     product_id: int | None = None,
-    db: Session = Depends(get_db),
+    ctx: TenantCtx = Depends(get_tenant_ctx),
 ):
-    query = db.query(Stock)
+    query = scoped(ctx, Stock)
     if warehouse_id:
         query = query.filter(Stock.warehouse_id == warehouse_id)
     if product_id:
@@ -171,9 +170,9 @@ def list_stocks(
 
 
 @router.get("/movements", response_model=list[StockMovementResponse])
-def list_movements(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def list_movements(skip: int = 0, limit: int = 100, ctx: TenantCtx = Depends(get_tenant_ctx)):
     movements = (
-        db.query(StockMovement)
+        scoped(ctx, StockMovement)
         .order_by(StockMovement.created_at.desc())
         .offset(skip)
         .limit(limit)
@@ -198,12 +197,12 @@ def list_movements(skip: int = 0, limit: int = 100, db: Session = Depends(get_db
 
 
 @router.post("/movements", response_model=StockMovementResponse, status_code=201)
-def create_movement(data: StockMovementCreate, db: Session = Depends(get_db)):
-    product = db.query(Product).filter(Product.id == data.product_id).first()
+def create_movement(data: StockMovementCreate, ctx: TenantCtx = Depends(get_tenant_ctx)):
+    product = scoped(ctx, Product).filter(Product.id == data.product_id).first()
     if not product:
         raise HTTPException(status_code=404, detail="Товар не найден")
 
-    warehouse = db.query(Warehouse).filter(Warehouse.id == data.warehouse_id).first()
+    warehouse = scoped(ctx, Warehouse).filter(Warehouse.id == data.warehouse_id).first()
     if not warehouse:
         raise HTTPException(status_code=404, detail="Склад не найден")
 
@@ -213,12 +212,17 @@ def create_movement(data: StockMovementCreate, db: Session = Depends(get_db)):
     if data.movement_type == MovementType.TRANSFER.value and not data.to_warehouse_id:
         raise HTTPException(status_code=400, detail="Укажите склад назначения для перемещения")
 
+    if data.to_warehouse_id:
+        to_wh = scoped(ctx, Warehouse).filter(Warehouse.id == data.to_warehouse_id).first()
+        if not to_wh:
+            raise HTTPException(status_code=404, detail="Склад назначения не найден")
+
     try:
-        movement = apply_movement(db, data)
+        movement = apply_movement(ctx.db, data, ctx.tenant_id)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
-    db.commit()
-    db.refresh(movement)
+    ctx.db.commit()
+    ctx.db.refresh(movement)
     return StockMovementResponse(
         id=movement.id,
         product_id=movement.product_id,

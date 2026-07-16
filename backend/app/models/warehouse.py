@@ -16,10 +16,12 @@ class MovementType(str, Enum):
 
 class Product(Base):
     __tablename__ = "products"
+    __table_args__ = (UniqueConstraint("tenant_id", "sku", name="uq_product_tenant_sku"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    tenant_id: Mapped[int] = mapped_column(Integer, ForeignKey("tenants.id"), index=True)
     name: Mapped[str] = mapped_column(String(255))
-    sku: Mapped[str | None] = mapped_column(String(100), nullable=True, unique=True)
+    sku: Mapped[str | None] = mapped_column(String(100), nullable=True)
     unit: Mapped[str] = mapped_column(String(20), default="шт")
     price: Mapped[float] = mapped_column(Float, default=0.0)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -33,6 +35,7 @@ class Warehouse(Base):
     __tablename__ = "warehouses"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    tenant_id: Mapped[int] = mapped_column(Integer, ForeignKey("tenants.id"), index=True)
     name: Mapped[str] = mapped_column(String(255))
     address: Mapped[str | None] = mapped_column(String(500), nullable=True)
     is_default: Mapped[bool] = mapped_column(default=False)
@@ -50,6 +53,7 @@ class Stock(Base):
     __table_args__ = (UniqueConstraint("product_id", "warehouse_id", name="uq_stock"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    tenant_id: Mapped[int] = mapped_column(Integer, ForeignKey("tenants.id"), index=True)
     product_id: Mapped[int] = mapped_column(Integer, ForeignKey("products.id"))
     warehouse_id: Mapped[int] = mapped_column(Integer, ForeignKey("warehouses.id"))
     quantity: Mapped[float] = mapped_column(Float, default=0.0)
@@ -63,6 +67,7 @@ class StockMovement(Base):
     __tablename__ = "stock_movements"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    tenant_id: Mapped[int] = mapped_column(Integer, ForeignKey("tenants.id"), index=True)
     product_id: Mapped[int] = mapped_column(Integer, ForeignKey("products.id"))
     warehouse_id: Mapped[int] = mapped_column(Integer, ForeignKey("warehouses.id"))
     movement_type: Mapped[str] = mapped_column(String(50))

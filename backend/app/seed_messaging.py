@@ -3,13 +3,14 @@ from datetime import datetime, timedelta
 from app.models.messaging import CallLog, Conversation, Message
 
 
-def seed_messaging(db):
-    if db.query(Conversation).first():
+def seed_messaging(db, tenant_id: int):
+    if db.query(Conversation).filter(Conversation.tenant_id == tenant_id).first():
         return
 
     now = datetime.utcnow()
 
     wa_conv = Conversation(
+        tenant_id=tenant_id,
         channel="whatsapp",
         external_id="79001234567",
         contact_name="Георгий Беридзе",
@@ -23,6 +24,7 @@ def seed_messaging(db):
 
     db.add_all([
         Message(
+            tenant_id=tenant_id,
             conversation_id=wa_conv.id,
             direction="inbound",
             body="Здравствуйте, интересует поставка оборудования",
@@ -31,6 +33,7 @@ def seed_messaging(db):
             created_at=now - timedelta(minutes=10),
         ),
         Message(
+            tenant_id=tenant_id,
             conversation_id=wa_conv.id,
             direction="outbound",
             body="Добрый день! Подскажите, какое оборудование вас интересует?",
@@ -39,6 +42,7 @@ def seed_messaging(db):
             created_at=now - timedelta(minutes=8),
         ),
         Message(
+            tenant_id=tenant_id,
             conversation_id=wa_conv.id,
             direction="inbound",
             body="Нужны 10 единиц ноутбуков для офиса",
@@ -49,6 +53,7 @@ def seed_messaging(db):
     ])
 
     msg_conv = Conversation(
+        tenant_id=tenant_id,
         channel="messenger",
         external_id="1234567890123456",
         contact_name="Nino Kvlividze",
@@ -60,6 +65,7 @@ def seed_messaging(db):
     db.flush()
 
     db.add(Message(
+        tenant_id=tenant_id,
         conversation_id=msg_conv.id,
         direction="inbound",
         body="Можно узнать цену на мониторы?",
@@ -69,6 +75,7 @@ def seed_messaging(db):
     ))
 
     tg_conv = Conversation(
+        tenant_id=tenant_id,
         channel="telegram",
         external_id="987654321",
         contact_name="David Chkheidze",
@@ -80,6 +87,7 @@ def seed_messaging(db):
     db.add(tg_conv)
     db.flush()
     db.add(Message(
+        tenant_id=tenant_id,
         conversation_id=tg_conv.id,
         direction="inbound",
         body="Добрый день, есть в наличии?",
@@ -89,6 +97,7 @@ def seed_messaging(db):
     ))
 
     db.add(CallLog(
+        tenant_id=tenant_id,
         channel="whatsapp",
         external_id="79009876543",
         conversation_id=wa_conv.id,

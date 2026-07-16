@@ -3,6 +3,7 @@ import { localApi } from './localStore'
 const API_BASE = import.meta.env.VITE_API_URL || '/api'
 const USE_LOCAL = import.meta.env.VITE_USE_LOCAL_API === 'true'
 export const AUTH_TOKEN_KEY = 'kinetix_token'
+export const COMPANY_SLUG_KEY = 'kinetix_company_slug'
 
 let useLocal = USE_LOCAL
 
@@ -16,6 +17,18 @@ export function setAuthToken(token: string) {
 
 export function clearAuthToken() {
   localStorage.removeItem(AUTH_TOKEN_KEY)
+}
+
+export function getCompanySlug(): string | null {
+  return localStorage.getItem(COMPANY_SLUG_KEY)
+}
+
+export function setCompanySlug(slug: string) {
+  localStorage.setItem(COMPANY_SLUG_KEY, slug)
+}
+
+export function clearCompanySlug() {
+  localStorage.removeItem(COMPANY_SLUG_KEY)
 }
 
 class ApiError extends Error {
@@ -90,10 +103,22 @@ async function withFallback<T>(remote: () => Promise<T>, local: () => T): Promis
 
 export const api = {
   auth: {
-    login: (username: string, password: string) =>
-      request<TokenResponse>('/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) }),
+    login: (companySlug: string, username: string, password: string) =>
+      request<TokenResponse>('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ company_slug: companySlug, username, password }),
+      }),
+    register: (data: RegisterInput) =>
+      request<TokenResponse>('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
     me: () => request<AuthUser>('/auth/me'),
     logout: () => request<{ ok: boolean }>('/auth/logout', { method: 'POST' }),
+    updateProfile: (data: { full_name?: string; email?: string }) =>
+      request<AuthUser>('/auth/profile', { method: 'PATCH', body: JSON.stringify(data) }),
+    changePassword: (current_password: string, new_password: string) =>
+      request<{ ok: boolean }>('/auth/change-password', {
+        method: 'POST',
+        body: JSON.stringify({ current_password, new_password }),
+      }),
     users: {
       list: () => request<UserRecord[]>('/auth/users'),
       create: (data: UserCreateInput) => request<UserRecord>('/auth/users', { method: 'POST', body: JSON.stringify(data) }),
@@ -101,6 +126,12 @@ export const api = {
         request<UserRecord>(`/auth/users/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
       delete: (id: number) => request<void>(`/auth/users/${id}`, { method: 'DELETE' }),
     },
+  },
+
+  tenant: {
+    get: () => request<TenantRecord>('/tenant/me'),
+    update: (data: Partial<TenantRecord>) =>
+      request<TenantRecord>('/tenant/me', { method: 'PATCH', body: JSON.stringify(data) }),
   },
 
   dashboard: () => withFallback(() => request<DashboardData>('/dashboard'), () => localApi.dashboard()),
@@ -594,6 +625,17 @@ export interface BotLog {
   created_at: string
 }
 
+export interface TenantRecord {
+  id: number
+  name: string
+  slug: string
+  email?: string
+  phone?: string
+  address?: string
+  is_active: boolean
+  created_at?: string
+}
+
 export interface AuthUser {
   id: number
   username: string
@@ -601,7 +643,9 @@ export interface AuthUser {
   full_name: string
   role: string
   is_active: boolean
+  tenant_id: number
   permissions: string[]
+  tenant: TenantRecord
   created_at?: string
 }
 
@@ -627,4 +671,15 @@ export interface UserCreateInput {
   full_name: string
   email?: string
   role: string
+}
+
+export interface RegisterInput {
+  company_name: string
+  company_slug: string
+  admin_username: string
+  admin_password: string
+  admin_full_name: string
+  admin_email?: string
+  company_email?: string
+  company_phone?: string
 }

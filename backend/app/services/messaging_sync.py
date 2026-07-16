@@ -27,42 +27,64 @@ def channel_source(channel: str) -> str:
     return CHANNEL_SOURCES.get(channel, channel)
 
 
-def find_contact_by_phone(db: Session, phone: str | None) -> Contact | None:
+def find_contact_by_phone(db: Session, phone: str | None, tenant_id: int) -> Contact | None:
     target = normalize_phone(phone)
     if not target:
         return None
-    for contact in db.query(Contact).filter(Contact.phone.isnot(None)).all():
+    for contact in (
+        db.query(Contact)
+        .filter(Contact.tenant_id == tenant_id, Contact.phone.isnot(None))
+        .all()
+    ):
         if normalize_phone(contact.phone) == target:
             return contact
     return None
 
 
-def find_lead_by_phone(db: Session, phone: str | None) -> Lead | None:
+def find_lead_by_phone(db: Session, phone: str | None, tenant_id: int) -> Lead | None:
     target = normalize_phone(phone)
     if not target:
         return None
-    for lead in db.query(Lead).filter(Lead.phone.isnot(None)).all():
+    for lead in (
+        db.query(Lead)
+        .filter(Lead.tenant_id == tenant_id, Lead.phone.isnot(None))
+        .all()
+    ):
         if normalize_phone(lead.phone) == target:
             return lead
     return None
 
 
-def find_lead_by_name(db: Session, name: str | None) -> Lead | None:
+def find_lead_by_name(db: Session, name: str | None, tenant_id: int) -> Lead | None:
     if not name or len(name.strip()) < 2:
         return None
     lowered = name.strip().lower()
-    for lead in db.query(Lead).filter(Lead.name.isnot(None)).all():
+    for lead in (
+        db.query(Lead)
+        .filter(Lead.tenant_id == tenant_id, Lead.name.isnot(None))
+        .all()
+    ):
         if lead.name and lead.name.strip().lower() == lowered:
             return lead
     return None
 
 
-def _propagate_links_by_phone(db: Session, phone: str | None, contact_id: int | None, lead_id: int | None) -> int:
+def _propagate_links_by_phone(
+    db: Session,
+    phone: str | None,
+    contact_id: int | None,
+    lead_id: int | None,
+    tenant_id: int,
+) -> int:
     target = normalize_phone(phone)
     if not target:
         return 0
     updated = 0
-    for conv in db.query(Conversation).filter(Conversation.phone.isnot(None)).all():
+    for conv in (
+        db.query(Conversation)
+        .filter(Conversation.tenant_id == tenant_id, Conversation.phone.isnot(None))
+        .all()
+    ):
         if normalize_phone(conv.phone) != target:
             continue
         changed = False
@@ -74,7 +96,11 @@ def _propagate_links_by_phone(db: Session, phone: str | None, contact_id: int | 
             changed = True
         if changed:
             updated += 1
-    for call in db.query(CallLog).filter(CallLog.phone.isnot(None)).all():
+    for call in (
+        db.query(CallLog)
+        .filter(CallLog.tenant_id == tenant_id, CallLog.phone.isnot(None))
+        .all()
+    ):
         if normalize_phone(call.phone) != target:
             continue
         if contact_id:
@@ -88,21 +114,43 @@ def _sync_crm_entity_from_conversation(db: Session, conversation: Conversation) 
     """Обновляет телефон/имя в лиде и контакте из диалога."""
     if conversation.phone:
         if conversation.lead_id:
-            lead = db.query(Lead).filter(Lead.id == conversation.lead_id).first()
+            lead = (
+                db.query(Lead)
+                .filter(Lead.id == conversation.lead_id, Lead.tenant_id == conversation.tenant_id)
+                .first()
+            )
             if lead and not lead.phone:
                 lead.phone = conversation.phone
         if conversation.contact_id:
-            contact = db.query(Contact).filter(Contact.id == conversation.contact_id).first()
+            contact = (
+                db.query(Contact)
+                .filter(
+                    Contact.id == conversation.contact_id,
+                    Contact.tenant_id == conversation.tenant_id,
+                )
+                .first()
+            )
             if contact and not contact.phone:
                 contact.phone = conversation.phone
 
     if conversation.contact_name:
         if conversation.lead_id:
-            lead = db.query(Lead).filter(Lead.id == conversation.lead_id).first()
+            lead = (
+                db.query(Lead)
+                .filter(Lead.id == conversation.lead_id, Lead.tenant_id == conversation.tenant_id)
+                .first()
+            )
             if lead and not lead.name:
                 lead.name = conversation.contact_name
         if conversation.contact_id:
-            contact = db.query(Contact).filter(Contact.id == conversation.contact_id).first()
+            contact = (
+                db.query(Contact)
+                .filter(
+                    Contact.id == conversation.contact_id,
+                    Contact.tenant_id == conversation.tenant_id,
+                )
+                .first()
+            )
             if contact and contact.name != conversation.contact_name:
                 pass  # не перезаписываем имя контакта автоматически
 
@@ -110,28 +158,30 @@ def _sync_crm_entity_from_conversation(db: Session, conversation: Conversation) 
 def ensure_lead_for_inbound(
     db: Session,
     *,
+    tenant_id: int,
     channel: str,
     phone: str | None,
     contact_name: str | None,
     external_id: str | None = None,
 ) -> Lead | None:
     if phone:
-        existing = find_lead_by_phone(db, phone)
+        existing = find_lead_by_phone(db, phone, tenant_id)
         if existing:
             return existing
 
-    contact = find_contact_by_phone(db, phone)
+    contact = find_contact_by_phone(db, phone, tenant_id)
     if contact:
         return None
 
     if contact_name:
-        by_name = find_lead_by_name(db, contact_name)
+        by_name = find_lead_by_name(db, contact_name, tenant_id)
         if by_name:
             return by_name
 
     source = channel_source(channel)
     name = contact_name or phone or external_id or "Неизвестный"
     lead = Lead(
+        tenant_id=tenant_id,
         title=f"Входящий {source}: {name}",
         name=contact_name,
         phone=phone,
@@ -145,12 +195,18 @@ def ensure_lead_for_inbound(
 
 
 def convert_conversation_to_contact(db: Session, conversation: Conversation) -> Contact:
+    tenant_id = conversation.tenant_id
     if conversation.contact_id:
-        contact = db.query(Contact).filter(Contact.id == conversation.contact_id).first()
+        contact = (
+            db.query(Contact)
+            .filter(Contact.id == conversation.contact_id, Contact.tenant_id == tenant_id)
+            .first()
+        )
         if contact:
             return contact
 
     contact = Contact(
+        tenant_id=tenant_id,
         name=conversation.contact_name or conversation.phone or f"Клиент {conversation.external_id}",
         phone=conversation.phone,
     )
@@ -159,13 +215,19 @@ def convert_conversation_to_contact(db: Session, conversation: Conversation) -> 
 
     conversation.contact_id = contact.id
     if conversation.lead_id:
-        lead = db.query(Lead).filter(Lead.id == conversation.lead_id).first()
+        lead = (
+            db.query(Lead)
+            .filter(Lead.id == conversation.lead_id, Lead.tenant_id == tenant_id)
+            .first()
+        )
         if lead:
             lead.status = LeadStatus.CONVERTED.value
             if not lead.name and conversation.contact_name:
                 lead.name = conversation.contact_name
 
-    _propagate_links_by_phone(db, conversation.phone, contact.id, conversation.lead_id)
+    _propagate_links_by_phone(
+        db, conversation.phone, contact.id, conversation.lead_id, tenant_id
+    )
     return contact
 
 
@@ -177,20 +239,21 @@ def link_conversation(
     contact_name: str | None = None,
     auto_create_lead: bool = True,
 ) -> None:
+    tenant_id = conversation.tenant_id
     if phone and not conversation.phone:
         conversation.phone = phone
     if contact_name and not conversation.contact_name:
         conversation.contact_name = contact_name
 
-    contact = find_contact_by_phone(db, conversation.phone)
+    contact = find_contact_by_phone(db, conversation.phone, tenant_id)
     if contact:
         conversation.contact_id = contact.id
         if not conversation.contact_name:
             conversation.contact_name = contact.name
 
-    lead = find_lead_by_phone(db, conversation.phone)
+    lead = find_lead_by_phone(db, conversation.phone, tenant_id)
     if not lead and conversation.contact_name:
-        lead = find_lead_by_name(db, conversation.contact_name)
+        lead = find_lead_by_name(db, conversation.contact_name, tenant_id)
 
     if lead:
         conversation.lead_id = lead.id
@@ -199,6 +262,7 @@ def link_conversation(
     elif auto_create_lead:
         new_lead = ensure_lead_for_inbound(
             db,
+            tenant_id=tenant_id,
             channel=conversation.channel,
             phone=conversation.phone,
             contact_name=conversation.contact_name,
@@ -213,6 +277,7 @@ def link_conversation(
         conversation.phone,
         conversation.contact_id,
         conversation.lead_id,
+        tenant_id,
     )
 
 
@@ -226,12 +291,16 @@ def sync_conversation(db: Session, conversation: Conversation) -> None:
     )
 
 
-def sync_by_contact(db: Session, contact_id: int) -> int:
-    contact = db.query(Contact).filter(Contact.id == contact_id).first()
+def sync_by_contact(db: Session, contact_id: int, tenant_id: int) -> int:
+    contact = (
+        db.query(Contact)
+        .filter(Contact.id == contact_id, Contact.tenant_id == tenant_id)
+        .first()
+    )
     if not contact:
         return 0
     count = 0
-    for conv in db.query(Conversation).all():
+    for conv in db.query(Conversation).filter(Conversation.tenant_id == tenant_id).all():
         matched = False
         if contact.phone and conv.phone and normalize_phone(contact.phone) == normalize_phone(conv.phone):
             matched = True
@@ -248,12 +317,16 @@ def sync_by_contact(db: Session, contact_id: int) -> int:
     return count
 
 
-def sync_by_lead(db: Session, lead_id: int) -> int:
-    lead = db.query(Lead).filter(Lead.id == lead_id).first()
+def sync_by_lead(db: Session, lead_id: int, tenant_id: int) -> int:
+    lead = (
+        db.query(Lead)
+        .filter(Lead.id == lead_id, Lead.tenant_id == tenant_id)
+        .first()
+    )
     if not lead:
         return 0
     count = 0
-    for conv in db.query(Conversation).all():
+    for conv in db.query(Conversation).filter(Conversation.tenant_id == tenant_id).all():
         matched = False
         if lead.phone and conv.phone and normalize_phone(lead.phone) == normalize_phone(conv.phone):
             matched = True
@@ -270,21 +343,23 @@ def sync_by_lead(db: Session, lead_id: int) -> int:
     return count
 
 
-def sync_all(db: Session) -> dict:
-    conversations = db.query(Conversation).all()
+def sync_all(db: Session, tenant_id: int) -> dict:
+    conversations = (
+        db.query(Conversation).filter(Conversation.tenant_id == tenant_id).all()
+    )
 
     for conv in conversations:
         sync_conversation(db, conv)
 
-    for contact in db.query(Contact).all():
-        sync_by_contact(db, contact.id)
+    for contact in db.query(Contact).filter(Contact.tenant_id == tenant_id).all():
+        sync_by_contact(db, contact.id, tenant_id)
 
-    for lead in db.query(Lead).all():
-        sync_by_lead(db, lead.id)
+    for lead in db.query(Lead).filter(Lead.tenant_id == tenant_id).all():
+        sync_by_lead(db, lead.id, tenant_id)
 
     messenger_leads = (
         db.query(Lead)
-        .filter(Lead.source.in_(list(CHANNEL_SOURCES.values())))
+        .filter(Lead.tenant_id == tenant_id, Lead.source.in_(list(CHANNEL_SOURCES.values())))
         .count()
     )
 
@@ -296,11 +371,19 @@ def sync_all(db: Session) -> dict:
     }
 
 
-def get_company_name(db: Session, contact_id: int | None) -> str | None:
+def get_company_name(db: Session, contact_id: int | None, tenant_id: int) -> str | None:
     if not contact_id:
         return None
-    contact = db.query(Contact).filter(Contact.id == contact_id).first()
+    contact = (
+        db.query(Contact)
+        .filter(Contact.id == contact_id, Contact.tenant_id == tenant_id)
+        .first()
+    )
     if not contact or not contact.company_id:
         return None
-    company = db.query(Company).filter(Company.id == contact.company_id).first()
+    company = (
+        db.query(Company)
+        .filter(Company.id == contact.company_id, Company.tenant_id == tenant_id)
+        .first()
+    )
     return company.name if company else None

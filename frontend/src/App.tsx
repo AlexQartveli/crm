@@ -16,11 +16,14 @@ import Integrations from './pages/Integrations'
 import Bots from './pages/Bots'
 import Users from './pages/Users'
 import Login from './pages/Login'
+import Register from './pages/Register'
+import Cabinet from './pages/Cabinet'
 
 export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
       <Route element={<AuthGuard />}>
         <Route element={<Layout />}>
           <Route index element={<Dashboard />} />
@@ -37,6 +40,7 @@ export default function App() {
           <Route path="accounting" element={<Accounting />} />
           <Route path="accounting/settings" element={<TaxSettings />} />
           <Route path="users" element={<Users />} />
+          <Route path="cabinet" element={<Cabinet />} />
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
