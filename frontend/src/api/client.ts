@@ -693,6 +693,13 @@ export interface RegisterInput {
   company_phone?: string
 }
 
+export interface CrmService {
+  id: string
+  label_ru: string
+  label_en: string
+  label_ka: string
+}
+
 export interface CrmType {
   id: string
   label_ru: string
@@ -703,6 +710,8 @@ export interface CrmType {
   desc_ka: string
   icon: string
   features: string[]
+  modules?: string[]
+  services?: CrmService[]
 }
 
 export interface CrmFieldDef {
@@ -727,4 +736,5 @@ export interface CrmConfig {
   deal_stages: Array<{ key: string; label_ru: string; label_en: string; label_ka: string; color: string }>
   lead_statuses: Array<{ key: string; label_ru: string; label_en: string; label_ka: string; color: string }>
   hide_base_fields: Record<string, string[]>
+  services?: CrmService[]
 }

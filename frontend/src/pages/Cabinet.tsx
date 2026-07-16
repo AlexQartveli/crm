@@ -44,6 +44,8 @@ export default function Cabinet() {
     return type.label_ru
   })()
 
+  const crmServices = crmTypes.find((c) => c.id === tenant?.crm_type)?.services || []
+
   const saveProfile = async (e: React.FormEvent) => {
     e.preventDefault()
     await api.auth.updateProfile(profile)
@@ -109,6 +111,16 @@ export default function Cabinet() {
         <form onSubmit={saveCompany} className="card p-6 space-y-4 max-w-xl">
           <h2 className="font-semibold">{t.cabinet.companyTab}</h2>
           <div><label className="label">{t.auth.crmType}</label><input className="input" value={crmTypeLabel} disabled /></div>
+          {crmServices.length > 0 && (
+            <div>
+              <label className="label">{t.auth.includedServices}</label>
+              <ul className="text-sm text-app-text-muted space-y-1 mt-1">
+                {crmServices.map((s) => (
+                  <li key={s.id}>✓ {locale === 'en' ? s.label_en : locale === 'ka' ? s.label_ka : s.label_ru}</li>
+                ))}
+              </ul>
+            </div>
+          )}
           <div><label className="label">{t.auth.companyCode}</label><input className="input" value={tenant.slug} disabled /></div>
           <div><label className="label">{t.auth.companyName}</label><input className="input" value={company.name} disabled={!canEditCompany} onChange={(e) => setCompany({ ...company, name: e.target.value })} /></div>
           <div><label className="label">{t.common.email}</label><input className="input" type="email" value={company.email} disabled={!canEditCompany} onChange={(e) => setCompany({ ...company, email: e.target.value })} /></div>

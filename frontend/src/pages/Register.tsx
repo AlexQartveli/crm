@@ -142,8 +142,18 @@ export default function Register() {
                 )
               })}
             </div>
-            {selected && (
-              <p className="text-xs text-app-text-muted mt-2">{crmDesc(selected, locale)}</p>
+            {selected && selected.services && selected.services.length > 0 && (
+              <div className="mt-3 p-4 rounded-xl bg-kinetix-50 dark:bg-kinetix-900/20 border border-kinetix-200 dark:border-kinetix-800">
+                <p className="text-sm font-medium text-app-text mb-2">{t.auth.includedServices}</p>
+                <ul className="grid sm:grid-cols-2 gap-1.5 text-xs text-app-text-muted">
+                  {selected.services.map((s) => (
+                    <li key={s.id} className="flex items-start gap-1.5">
+                      <span className="text-kinetix-600 shrink-0">✓</span>
+                      <span>{locale === 'en' ? s.label_en : locale === 'ka' ? s.label_ka : s.label_ru}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
           </div>
 

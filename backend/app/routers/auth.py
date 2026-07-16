@@ -3,7 +3,7 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.core.crm_config import config_to_api
+from app.core.crm_config import config_to_api, get_crm_config
 from app.core.crm_types import CRM_TYPES
 from app.core.permissions import ALL_ROLES, ROLE_LABELS, get_role_permissions
 from app.core.security import create_access_token, hash_password, verify_password
@@ -16,6 +16,7 @@ from app.schemas.auth import (
     AuthUserResponse,
     ChangePasswordRequest,
     CrmTypeResponse,
+    CrmServiceResponse,
     LoginRequest,
     ProfileUpdate,
     RegisterRequest,
@@ -53,8 +54,10 @@ def _auth_user(user: User, tenant: Tenant) -> AuthUserResponse:
 
 @router.get("/crm-types", response_model=list[CrmTypeResponse])
 def list_crm_types():
-    return [
-        CrmTypeResponse(
+    result = []
+    for t in CRM_TYPES.values():
+        cfg = get_crm_config(t.id)
+        result.append(CrmTypeResponse(
             id=t.id,
             label_ru=t.label_ru,
             label_en=t.label_en,
@@ -63,10 +66,19 @@ def list_crm_types():
             desc_en=t.desc_en,
             desc_ka=t.desc_ka,
             icon=t.icon,
-            features=list(t.features),
-        )
-        for t in CRM_TYPES.values()
-    ]
+            features=list(cfg.modules),
+            modules=list(cfg.modules),
+            services=[
+                CrmServiceResponse(
+                    id=s.id,
+                    label_ru=s.label.ru,
+                    label_en=s.label.en,
+                    label_ka=s.label.ka,
+                )
+                for s in cfg.services
+            ],
+        ))
+    return result
 
 
 @router.get("/crm-config")

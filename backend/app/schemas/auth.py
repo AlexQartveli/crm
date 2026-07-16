@@ -21,6 +21,13 @@ class RegisterRequest(BaseModel):
     crm_type: str = "general"
 
 
+class CrmServiceResponse(BaseModel):
+    id: str
+    label_ru: str
+    label_en: str
+    label_ka: str
+
+
 class CrmTypeResponse(BaseModel):
     id: str
     label_ru: str
@@ -31,6 +38,8 @@ class CrmTypeResponse(BaseModel):
     desc_ka: str
     icon: str
     features: list[str]
+    modules: list[str] = []
+    services: list[CrmServiceResponse] = []
 
 
 class TenantResponse(BaseModel):
