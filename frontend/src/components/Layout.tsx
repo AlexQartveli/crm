@@ -19,6 +19,7 @@ import {
   UserCog,
   LogOut,
   Settings2,
+  CalendarDays,
 } from 'lucide-react'
 import { useAuth } from '../auth/AuthContext'
 import { PERM, ROUTE_PERMISSIONS, ROLE_LABELS } from '../auth/permissions'
@@ -35,6 +36,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
     { module: 'dashboard', to: '/', icon: LayoutDashboard, label: t.nav.dashboard, permission: ROUTE_PERMISSIONS['/'] },
     { module: 'leads', to: '/leads', icon: UserPlus, label: entityLabel('leads', t.nav.leads), permission: ROUTE_PERMISSIONS['/leads'] },
     { module: 'deals', to: '/deals', icon: Handshake, label: entityLabel('deals', t.nav.deals), permission: ROUTE_PERMISSIONS['/deals'] },
+    { module: 'schedule', to: '/schedule', icon: CalendarDays, label: entityLabel('schedule', t.nav.schedule), permission: ROUTE_PERMISSIONS['/schedule'] },
     { module: 'contacts', to: '/contacts', icon: Users, label: entityLabel('contacts', t.nav.contacts), permission: ROUTE_PERMISSIONS['/contacts'] },
     { module: 'companies', to: '/companies', icon: Building2, label: entityLabel('companies', t.nav.companies), permission: ROUTE_PERMISSIONS['/companies'] },
     { module: 'products', to: '/products', icon: Package, label: entityLabel('products', t.nav.products), permission: ROUTE_PERMISSIONS['/products'] },

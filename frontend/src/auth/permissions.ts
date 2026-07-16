@@ -21,6 +21,8 @@ export const PERM = {
   automationsView: 'automations.view',
   automationsManage: 'automations.manage',
   usersManage: 'users.manage',
+  schedulingView: 'scheduling.view',
+  schedulingManage: 'scheduling.manage',
 } as const
 
 export type Permission = (typeof PERM)[keyof typeof PERM]
@@ -41,6 +43,7 @@ export const ROUTE_PERMISSIONS: Record<string, Permission> = {
   '/accounting/settings': PERM.accountingSettings,
   '/users': PERM.usersManage,
   '/cabinet': PERM.dashboard,
+  '/schedule': PERM.schedulingView,
 }
 
 export const ROLE_LABELS: Record<string, { ru: string; en: string; ka: string }> = {

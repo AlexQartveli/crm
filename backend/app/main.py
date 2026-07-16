@@ -12,9 +12,10 @@ from app.models.crm import Company, Contact, Deal, Lead
 from app.models.tenant import Tenant
 from app.models.messaging import Conversation
 from app.models.warehouse import Product, Stock
-from app.routers import accounting, auth, automations, crm, messaging, tenant, warehouse
+from app.routers import accounting, auth, automations, crm, messaging, scheduling, tenant, warehouse
 from app.seed_crm_template import seed_crm_template
 from app.seed_demo_tenants import seed_demo_tenants
+from app.seed_schedule import seed_schedule
 from app.seed_users import seed_users
 from app.middleware.auth import AuthMiddleware
 
@@ -42,6 +43,7 @@ app.include_router(crm.router, prefix="/api")
 app.include_router(warehouse.router, prefix="/api")
 app.include_router(accounting.router, prefix="/api")
 app.include_router(messaging.router, prefix="/api")
+app.include_router(scheduling.router, prefix="/api")
 app.include_router(automations.router, prefix="/api")
 
 
@@ -53,6 +55,8 @@ def on_startup():
         tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
         seed_crm_template(db, tenant_id, tenant.crm_type if tenant else "general")
         seed_demo_tenants(db)
+        for t in db.query(Tenant).filter(Tenant.is_active.is_(True)).all():
+            seed_schedule(db, t.id, t.crm_type or "general")
     finally:
         db.close()
 

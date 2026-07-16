@@ -29,6 +29,7 @@ export const ROUTE_MODULE: Record<string, string> = {
   '/accounting/settings': 'accounting',
   '/cabinet': 'cabinet',
   '/users': 'users',
+  '/schedule': 'schedule',
 }
 
 type Label3 = { ru: string; en: string; ka: string }

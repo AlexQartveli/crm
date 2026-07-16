@@ -29,6 +29,10 @@ FULL_MODULES = (
     "accounting", "cabinet", "users",
 )
 
+
+def _mods(*extra: str) -> tuple[str, ...]:
+    return FULL_MODULES + extra
+
 YES_NO = (
     FieldOption("yes", L("Да", "Yes", "დიახ")),
     FieldOption("no", L("Нет", "No", "არა")),
@@ -133,7 +137,7 @@ EDUCATION_SERVICES = (
 
 EDUCATION_CONFIG = CrmTypeConfig(
     crm_type="education",
-    modules=FULL_MODULES,
+    modules=_mods("schedule"),
     services=EDUCATION_SERVICES,
     labels=_labels(
         leads=L("Абитуриенты", "Applicants", "აბიტურიენტები"),
@@ -146,6 +150,7 @@ EDUCATION_CONFIG = CrmTypeConfig(
         inbox=L("Сообщения родителям", "Parent messages", "მშობლები"),
         bots=L("Бот приёмной комиссии", "Admissions bot", "ბოტი"),
         accounting=L("Оплата обучения", "Tuition billing", "გადახდები"),
+        schedule=L("Расписание занятий", "Class schedule", "განრიგი"),
     ),
     fields={
         "leads": (
@@ -240,7 +245,7 @@ FACTORY_SERVICES = (
 
 FACTORY_CONFIG = CrmTypeConfig(
     crm_type="factory",
-    modules=FULL_MODULES,
+    modules=_mods("schedule"),
     services=FACTORY_SERVICES,
     labels=_labels(
         leads=L("Запросы на производство", "Production inquiries", "წარმოების მოთხოვნები"),
@@ -253,6 +258,7 @@ FACTORY_CONFIG = CrmTypeConfig(
         inbox=L("Сообщения клиентам", "Client messages", "შეტყობინებები"),
         bots=L("Бот статуса заказа", "Order status bot", "ბოტი"),
         accounting=L("Счета и RS.ge", "Invoicing & RS.ge", "RS.ge"),
+        schedule=L("План производства", "Production schedule", "წარმოების გrafiki"),
     ),
     fields={
         "leads": (
@@ -349,7 +355,7 @@ RETAIL_SERVICES = (
 
 RETAIL_CONFIG = CrmTypeConfig(
     crm_type="retail",
-    modules=FULL_MODULES,
+    modules=_mods("schedule"),
     services=RETAIL_SERVICES,
     labels=_labels(
         leads=L("Покупатели", "Customers", "მყიდველები"),
@@ -362,6 +368,7 @@ RETAIL_CONFIG = CrmTypeConfig(
         inbox=L("Сообщения покупателям", "Customer messages", "შეტყობინებები"),
         bots=L("Бот заказов", "Order bot", "ბოტი"),
         accounting=L("Касса и RS.ge", "POS & RS.ge", "RS.ge"),
+        schedule=L("Календарь акций", "Promo calendar", "აქციების კალენდარი"),
     ),
     fields={
         "leads": (
@@ -445,7 +452,7 @@ HOSPITALITY_SERVICES = (
 
 HOSPITALITY_CONFIG = CrmTypeConfig(
     crm_type="hospitality",
-    modules=FULL_MODULES,
+    modules=_mods("schedule"),
     services=HOSPITALITY_SERVICES,
     labels=_labels(
         leads=L("Бронирования", "Bookings", "ბронირებები"),
@@ -458,6 +465,7 @@ HOSPITALITY_CONFIG = CrmTypeConfig(
         inbox=L("Сообщения гостям", "Guest messages", "შეტყობინებები"),
         bots=L("Бот бронирования", "Booking bot", "ბოტი"),
         accounting=L("Оплата и RS.ge", "Billing & RS.ge", "RS.ge"),
+        schedule=L("Шахматка номеров", "Room grid", "ოთახების ცხრილი"),
     ),
     fields={
         "leads": (
@@ -552,7 +560,7 @@ CONSTRUCTION_SERVICES = (
 
 CONSTRUCTION_CONFIG = CrmTypeConfig(
     crm_type="construction",
-    modules=FULL_MODULES,
+    modules=_mods("schedule"),
     services=CONSTRUCTION_SERVICES,
     labels=_labels(
         leads=L("Заявки на строительство", "Construction inquiries", "მოთხოვნები"),
@@ -565,6 +573,7 @@ CONSTRUCTION_CONFIG = CrmTypeConfig(
         inbox=L("Сообщения на объекте", "Site messages", "შეტყობინებები"),
         bots=L("Бот статуса объекта", "Project status bot", "ბოტი"),
         accounting=L("Сметы и RS.ge", "Estimates & RS.ge", "RS.ge"),
+        schedule=L("График работ", "Work timeline", "სამუშაო გრafiki"),
     ),
     fields={
         "leads": (
@@ -662,7 +671,7 @@ AGRICULTURE_SERVICES = (
 
 AGRICULTURE_CONFIG = CrmTypeConfig(
     crm_type="agriculture",
-    modules=FULL_MODULES,
+    modules=_mods("schedule"),
     services=AGRICULTURE_SERVICES,
     labels=_labels(
         leads=L("Запросы на закупку", "Purchase inquiries", "მოთხოვნები"),
@@ -675,6 +684,7 @@ AGRICULTURE_CONFIG = CrmTypeConfig(
         inbox=L("Сообщения партнёрам", "Partner messages", "შეტყობინებები"),
         bots=L("Бот закупок", "Purchase bot", "ბოტი"),
         accounting=L("Расчёты и RS.ge", "Billing & RS.ge", "RS.ge"),
+        schedule=L("Сезонный календарь", "Season calendar", "სეზონის კალენდარი"),
     ),
     fields={
         "leads": (
@@ -758,7 +768,7 @@ MEDICAL_SERVICES = (
 
 MEDICAL_CONFIG = CrmTypeConfig(
     crm_type="medical",
-    modules=FULL_MODULES,
+    modules=_mods("schedule"),
     services=MEDICAL_SERVICES,
     labels=_labels(
         leads=L("Записи на приём", "Appointments", "ჩაწერები"),
@@ -771,6 +781,7 @@ MEDICAL_CONFIG = CrmTypeConfig(
         inbox=L("Сообщения пациентам", "Patient messages", "შეტყობინებები"),
         bots=L("Бот записи", "Booking bot", "ბოტი"),
         accounting=L("Оплата и RS.ge", "Billing & RS.ge", "RS.ge"),
+        schedule=L("Расписание приёмов", "Appointment schedule", "ჩაწერების გრafiki"),
     ),
     fields={
         "leads": (
@@ -854,7 +865,7 @@ LOGISTICS_SERVICES = (
 
 LOGISTICS_CONFIG = CrmTypeConfig(
     crm_type="logistics",
-    modules=FULL_MODULES,
+    modules=_mods("schedule"),
     services=LOGISTICS_SERVICES,
     labels=_labels(
         leads=L("Заявки на перевозку", "Shipping requests", "მოთხოვნები"),
@@ -867,6 +878,7 @@ LOGISTICS_CONFIG = CrmTypeConfig(
         inbox=L("Сообщения клиентам", "Client messages", "შეტყობინებები"),
         bots=L("Бот отслеживания", "Tracking bot", "ბოტი"),
         accounting=L("Расчёты и RS.ge", "Billing & RS.ge", "RS.ge"),
+        schedule=L("График рейсов", "Shipment schedule", "რeisebis grafiki"),
     ),
     fields={
         "leads": (
@@ -951,7 +963,7 @@ SERVICES_SERVICES = (
 
 SERVICES_CONFIG = CrmTypeConfig(
     crm_type="services",
-    modules=FULL_MODULES,
+    modules=_mods("schedule"),
     services=SERVICES_SERVICES,
     labels=_labels(
         leads=L("Заявки на услуги", "Service requests", "მოთხოვნები"),
@@ -964,6 +976,7 @@ SERVICES_CONFIG = CrmTypeConfig(
         inbox=L("Сообщения клиентам", "Client messages", "შეტყობინებები"),
         bots=L("Бот заявок", "Request bot", "ბოტი"),
         accounting=L("Счета и RS.ge", "Invoicing & RS.ge", "RS.ge"),
+        schedule=L("Календарь проектов", "Project calendar", "проекtiuri kalendar"),
     ),
     fields={
         "leads": (

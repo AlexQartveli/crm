@@ -198,6 +198,55 @@ export const api = {
     create: (data: Partial<StockMovement>) => withFallback(() => request<StockMovement>('/warehouse/movements', { method: 'POST', body: JSON.stringify(data) }), () => localApi.movements.create(data)),
   },
 
+  scheduling: {
+    resources: {
+      list: (resourceType?: string) => {
+        const q = resourceType ? `?resource_type=${encodeURIComponent(resourceType)}` : ''
+        return request<ScheduleResource[]>(`/scheduling/resources${q}`)
+      },
+      create: (data: Partial<ScheduleResource>) =>
+        request<ScheduleResource>('/scheduling/resources', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: number, data: Partial<ScheduleResource>) =>
+        request<ScheduleResource>(`/scheduling/resources/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: number) => request<void>(`/scheduling/resources/${id}`, { method: 'DELETE' }),
+    },
+    events: {
+      list: (from: string, to: string, params?: { resource_type?: string; resource_id?: number }) => {
+        const qs = new URLSearchParams({ from, to })
+        if (params?.resource_type) qs.set('resource_type', params.resource_type)
+        if (params?.resource_id) qs.set('resource_id', String(params.resource_id))
+        return request<ScheduleEvent[]>(`/scheduling/events?${qs}`)
+      },
+      create: (data: Partial<ScheduleEvent>) =>
+        request<ScheduleEvent>('/scheduling/events', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: number, data: Partial<ScheduleEvent>) =>
+        request<ScheduleEvent>(`/scheduling/events/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: number) => request<void>(`/scheduling/events/${id}`, { method: 'DELETE' }),
+    },
+    grid: (from: string, to: string, resourceType?: string) => {
+      const qs = new URLSearchParams({ from, to })
+      if (resourceType) qs.set('resource_type', resourceType)
+      return request<ScheduleGrid>(`/scheduling/grid?${qs}`)
+    },
+    ical: {
+      feeds: {
+        list: () => request<ICalFeed[]>('/scheduling/ical/feeds'),
+        create: (data: Partial<ICalFeed>) =>
+          request<ICalFeed>('/scheduling/ical/feeds', { method: 'POST', body: JSON.stringify(data) }),
+        update: (id: number, data: Partial<ICalFeed>) =>
+          request<ICalFeed>(`/scheduling/ical/feeds/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+        delete: (id: number) => request<void>(`/scheduling/ical/feeds/${id}`, { method: 'DELETE' }),
+        sync: (id: number) => request<ICalSyncResult>(`/scheduling/ical/feeds/${id}/sync`, { method: 'POST' }),
+        syncAll: () => request<{ results: Array<Record<string, unknown>> }>('/scheduling/ical/sync-all', { method: 'POST' }),
+      },
+      exportUrl: (resourceId?: number) => {
+        const base = API_BASE.replace(/\/$/, '')
+        const q = resourceId ? `?resource_id=${resourceId}` : ''
+        return `${base}/scheduling/ical/export.ics${q}`
+      },
+    },
+  },
+
   accounting: {
     invoices: {
       list: () => withFallback(() => request<TaxInvoice[]>('/accounting/invoices'), () => localApi.accounting.invoices.list()),
@@ -727,6 +776,65 @@ export interface CrmType {
   features: string[]
   modules?: string[]
   services?: CrmService[]
+}
+
+export interface ScheduleResource {
+  id: number
+  resource_type: string
+  name: string
+  code: string
+  capacity: number
+  floor?: number | null
+  meta?: Record<string, unknown> | null
+  sort_order: number
+  is_active: boolean
+  created_at?: string
+}
+
+export interface ScheduleEvent {
+  id: number
+  resource_id?: number | null
+  title: string
+  guest_name?: string | null
+  phone?: string | null
+  email?: string | null
+  start_at: string
+  end_at: string
+  all_day: boolean
+  status: string
+  source?: string | null
+  external_uid?: string | null
+  notes?: string | null
+  custom_data?: Record<string, unknown> | null
+  resource_name?: string | null
+  lead_id?: number | null
+  deal_id?: number | null
+  contact_id?: number | null
+}
+
+export interface ScheduleGrid {
+  from_date: string
+  to_date: string
+  resource_type: string
+  resources: ScheduleResource[]
+  events: ScheduleEvent[]
+}
+
+export interface ICalFeed {
+  id: number
+  name: string
+  url: string
+  resource_id?: number | null
+  is_active: boolean
+  last_synced_at?: string | null
+  created_at?: string
+}
+
+export interface ICalSyncResult {
+  feed_id: number
+  imported: number
+  updated: number
+  skipped: number
 }
 
 export interface CrmFieldDef {

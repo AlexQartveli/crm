@@ -20,6 +20,7 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Demo from './pages/Demo'
 import Cabinet from './pages/Cabinet'
+import Schedule from './pages/Schedule'
 
 export default function App() {
   return (
@@ -33,6 +34,7 @@ export default function App() {
           <Route index element={<Dashboard />} />
           <Route path="leads" element={<Leads />} />
           <Route path="deals" element={<Deals />} />
+          <Route path="schedule" element={<Schedule />} />
           <Route path="contacts" element={<Contacts />} />
           <Route path="companies" element={<Companies />} />
           <Route path="products" element={<Products />} />

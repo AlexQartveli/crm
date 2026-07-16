@@ -3,6 +3,7 @@ from app.models.crm import Company, Contact, Deal, DealProduct, Lead
 from app.models.messaging import CallLog, Conversation, Message, MessagingSettings
 from app.models.tenant import Tenant
 from app.models.user import User
+from app.models.scheduling import ICalFeed, ScheduleEvent, ScheduleResource
 from app.models.warehouse import Product, Stock, StockMovement, Warehouse
 
 __all__ = [
@@ -26,4 +27,7 @@ __all__ = [
     "Warehouse",
     "Stock",
     "StockMovement",
+    "ScheduleResource",
+    "ScheduleEvent",
+    "ICalFeed",
 ]

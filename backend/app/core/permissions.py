@@ -61,6 +61,9 @@ PERM_AUTOMATIONS_MANAGE = "automations.manage"
 
 PERM_USERS_MANAGE = "users.manage"
 
+PERM_SCHEDULING_VIEW = "scheduling.view"
+PERM_SCHEDULING_MANAGE = "scheduling.manage"
+
 ALL_PERMISSIONS = frozenset({
     PERM_DASHBOARD,
     PERM_CRM_LEADS_VIEW, PERM_CRM_LEADS_MANAGE,
@@ -74,6 +77,7 @@ ALL_PERMISSIONS = frozenset({
     PERM_MESSAGING_INBOX, PERM_MESSAGING_INTEGRATIONS,
     PERM_AUTOMATIONS_VIEW, PERM_AUTOMATIONS_MANAGE,
     PERM_USERS_MANAGE,
+    PERM_SCHEDULING_VIEW, PERM_SCHEDULING_MANAGE,
 })
 
 ROLE_PERMISSIONS: dict[str, frozenset[str]] = {
@@ -87,12 +91,14 @@ ROLE_PERMISSIONS: dict[str, frozenset[str]] = {
         PERM_CRM_COMPANIES_VIEW, PERM_CRM_COMPANIES_MANAGE,
         PERM_MESSAGING_INBOX,
         PERM_AUTOMATIONS_VIEW,
+        PERM_SCHEDULING_VIEW, PERM_SCHEDULING_MANAGE,
     }),
     ROLE_OPERATOR: frozenset({
         PERM_DASHBOARD,
         PERM_CRM_LEADS_VIEW, PERM_CRM_LEADS_MANAGE,
         PERM_CRM_CONTACTS_VIEW, PERM_CRM_CONTACTS_MANAGE,
         PERM_MESSAGING_INBOX,
+        PERM_SCHEDULING_VIEW, PERM_SCHEDULING_MANAGE,
     }),
     ROLE_WAREHOUSE: frozenset({
         PERM_DASHBOARD,
@@ -204,6 +210,29 @@ _ROUTE_RULES: list[tuple[re.Pattern[str], dict[str, str]]] = [
         "PATCH": PERM_AUTOMATIONS_MANAGE, "DELETE": PERM_AUTOMATIONS_MANAGE,
     }),
     (re.compile(r"^/api/automations/logs$"), {"GET": PERM_AUTOMATIONS_VIEW}),
+
+    (re.compile(r"^/api/scheduling/resources$"), {
+        "GET": PERM_SCHEDULING_VIEW, "POST": PERM_SCHEDULING_MANAGE,
+    }),
+    (re.compile(r"^/api/scheduling/resources/\d+$"), {
+        "PATCH": PERM_SCHEDULING_MANAGE, "DELETE": PERM_SCHEDULING_MANAGE,
+    }),
+    (re.compile(r"^/api/scheduling/events$"), {
+        "GET": PERM_SCHEDULING_VIEW, "POST": PERM_SCHEDULING_MANAGE,
+    }),
+    (re.compile(r"^/api/scheduling/events/\d+$"), {
+        "PATCH": PERM_SCHEDULING_MANAGE, "DELETE": PERM_SCHEDULING_MANAGE,
+    }),
+    (re.compile(r"^/api/scheduling/grid$"), {"GET": PERM_SCHEDULING_VIEW}),
+    (re.compile(r"^/api/scheduling/ical/export\.ics$"), {"GET": PERM_SCHEDULING_VIEW}),
+    (re.compile(r"^/api/scheduling/ical/feeds$"), {
+        "GET": PERM_SCHEDULING_VIEW, "POST": PERM_SCHEDULING_MANAGE,
+    }),
+    (re.compile(r"^/api/scheduling/ical/feeds/\d+$"), {
+        "PATCH": PERM_SCHEDULING_MANAGE, "DELETE": PERM_SCHEDULING_MANAGE,
+    }),
+    (re.compile(r"^/api/scheduling/ical/feeds/\d+/sync$"), {"POST": PERM_SCHEDULING_MANAGE}),
+    (re.compile(r"^/api/scheduling/ical/sync-all$"), {"POST": PERM_SCHEDULING_MANAGE}),
 
     (re.compile(r"^/api/auth/users$"), {"GET": PERM_USERS_MANAGE, "POST": PERM_USERS_MANAGE}),
     (re.compile(r"^/api/auth/users/\d+$"), {
