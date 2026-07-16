@@ -14,6 +14,7 @@ from app.models.messaging import Conversation
 from app.models.warehouse import Product, Stock
 from app.routers import accounting, auth, automations, crm, messaging, tenant, warehouse
 from app.seed_crm_template import seed_crm_template
+from app.seed_demo_tenants import seed_demo_tenants
 from app.seed_users import seed_users
 from app.middleware.auth import AuthMiddleware
 
@@ -51,6 +52,7 @@ def on_startup():
         tenant_id = seed_users(db)
         tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
         seed_crm_template(db, tenant_id, tenant.crm_type if tenant else "general")
+        seed_demo_tenants(db)
     finally:
         db.close()
 

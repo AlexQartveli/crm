@@ -16,6 +16,7 @@ from app.schemas.auth import (
     AuthUserResponse,
     ChangePasswordRequest,
     CrmTypeResponse,
+    DemoAccountResponse,
     CrmServiceResponse,
     LoginRequest,
     ProfileUpdate,
@@ -29,6 +30,7 @@ from app.schemas.auth import (
     UserUpdate,
 )
 from app.services.tenant_provision import provision_tenant
+from app.seed_demo_tenants import list_demo_accounts
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -79,6 +81,11 @@ def list_crm_types():
             ],
         ))
     return result
+
+
+@router.get("/demo-accounts", response_model=list[DemoAccountResponse])
+def demo_accounts():
+    return [DemoAccountResponse(**a) for a in list_demo_accounts()]
 
 
 @router.get("/crm-config")

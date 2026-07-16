@@ -28,6 +28,20 @@ class CrmServiceResponse(BaseModel):
     label_ka: str
 
 
+class DemoAccountResponse(BaseModel):
+    crm_type: str
+    slug: str
+    label_ru: str
+    label_en: str
+    label_ka: str
+    desc_ru: str
+    desc_en: str
+    desc_ka: str
+    icon: str
+    username: str
+    password: str
+
+
 class CrmTypeResponse(BaseModel):
     id: str
     label_ru: str

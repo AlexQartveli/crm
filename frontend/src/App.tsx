@@ -18,6 +18,7 @@ import Bots from './pages/Bots'
 import Users from './pages/Users'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import Demo from './pages/Demo'
 import Cabinet from './pages/Cabinet'
 
 export default function App() {
@@ -25,6 +26,7 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/demo" element={<Demo />} />
       <Route element={<AuthGuard />}>
         <Route element={<Layout />}>
           <Route element={<ModuleGuard />}>

@@ -128,6 +128,7 @@ _PUBLIC_PREFIXES = (
     "/api/auth/login",
     "/api/auth/register",
     "/api/auth/crm-types",
+    "/api/auth/demo-accounts",
     "/api/messaging/webhooks/",
 )
 

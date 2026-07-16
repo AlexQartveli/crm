@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
-import { LogIn } from 'lucide-react'
+import { LogIn, Sparkles } from 'lucide-react'
 import { getCompanySlug } from '../api/client'
 import { useAuth } from '../auth/AuthContext'
 import { firstAllowedRoute } from '../auth/permissions'
@@ -89,6 +89,14 @@ export default function Login() {
           {t.auth.noAccount}{' '}
           <Link to="/register" className="text-kinetix-600 hover:underline">{t.auth.register}</Link>
         </p>
+
+        <Link
+          to="/demo"
+          className="mt-4 flex items-center justify-center gap-2 w-full py-3 rounded-lg border border-kinetix-200 dark:border-kinetix-800 text-kinetix-700 dark:text-kinetix-300 bg-kinetix-50/50 dark:bg-kinetix-900/20 hover:bg-kinetix-100 dark:hover:bg-kinetix-900/40 transition-colors text-sm font-medium"
+        >
+          <Sparkles size={16} />
+          {t.auth.viewAllDemos}
+        </Link>
 
         <div className="mt-6 pt-6 border-t border-app-border">
           <p className="text-xs text-app-text-muted mb-3">{t.auth.demoAccounts}</p>

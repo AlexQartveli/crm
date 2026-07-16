@@ -109,6 +109,7 @@ export const api = {
         body: JSON.stringify({ company_slug: companySlug, username, password }),
       }),
     crmTypes: () => request<CrmType[]>('/auth/crm-types'),
+    demoAccounts: () => request<DemoAccount[]>('/auth/demo-accounts'),
     crmConfig: () => request<CrmConfig>('/auth/crm-config'),
     register: (data: RegisterInput) =>
       request<TokenResponse>('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
@@ -698,6 +699,20 @@ export interface CrmService {
   label_ru: string
   label_en: string
   label_ka: string
+}
+
+export interface DemoAccount {
+  crm_type: string
+  slug: string
+  label_ru: string
+  label_en: string
+  label_ka: string
+  desc_ru: string
+  desc_en: string
+  desc_ka: string
+  icon: string
+  username: string
+  password: string
 }
 
 export interface CrmType {

@@ -53,6 +53,10 @@ const ru = {
     registerError: 'Не удалось зарегистрировать компанию',
     crmType: 'Тип CRM',
     includedServices: 'Включённые сервисы',
+    viewAllDemos: 'Посмотреть все типы CRM (демо)',
+    demoGalleryTitle: 'Демо всех типов CRM',
+    demoGallerySubtitle: 'Выберите отрасль — войдёте сразу с готовыми данными, без регистрации',
+    demoEnter: 'Открыть демо',
   },
   cabinet: {
     title: 'Личный кабинет',
@@ -421,6 +425,10 @@ const en: Translations = {
     registerError: 'Registration failed',
     crmType: 'CRM type',
     includedServices: 'Included services',
+    viewAllDemos: 'Preview all CRM types (demo)',
+    demoGalleryTitle: 'CRM type demos',
+    demoGallerySubtitle: 'Pick an industry — sign in instantly with sample data, no registration',
+    demoEnter: 'Open demo',
   },
   cabinet: {
     title: 'Account',
@@ -761,6 +769,10 @@ const ka: Translations = {
     registerError: 'რეგისტრაცია ვერ მოხერხდა',
     crmType: 'CRM ტიპი',
     includedServices: 'ჩართული სერვისები',
+    viewAllDemos: 'ყველა CRM ტიპის დემო',
+    demoGalleryTitle: 'CRM ტიპების დემო',
+    demoGallerySubtitle: 'აირჩიეთ ინდუსტრია — მზა მონაცემებით შესვლა რეგისტრაციის გარეშე',
+    demoEnter: 'დემოს გახსნა',
   },
   cabinet: {
     title: 'პირადი კაბინეტი',
