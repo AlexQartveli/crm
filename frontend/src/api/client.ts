@@ -195,6 +195,59 @@ export const api = {
       () => localApi.messaging.syncCrm(),
     ),
   },
+
+  automations: {
+    bots: {
+      list: () => withFallback(
+        () => request<ChatBot[]>('/automations/bots'),
+        () => localApi.automations.bots.list(),
+      ),
+      get: (id: number) => withFallback(
+        () => request<ChatBot>(`/automations/bots/${id}`),
+        () => localApi.automations.bots.get(id),
+      ),
+      create: (data: ChatBotInput) => withFallback(
+        () => request<ChatBot>('/automations/bots', { method: 'POST', body: JSON.stringify(data) }),
+        () => localApi.automations.bots.create(data),
+      ),
+      update: (id: number, data: Partial<ChatBotInput>) => withFallback(
+        () => request<ChatBot>(`/automations/bots/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+        () => localApi.automations.bots.update(id, data),
+      ),
+      delete: (id: number) => withFallback(
+        () => request<void>(`/automations/bots/${id}`, { method: 'DELETE' }),
+        () => localApi.automations.bots.delete(id),
+      ),
+      toggle: (id: number) => withFallback(
+        () => request<ChatBot>(`/automations/bots/${id}/toggle`, { method: 'PATCH' }),
+        () => localApi.automations.bots.toggle(id),
+      ),
+    },
+    templates: {
+      list: () => withFallback(
+        () => request<MessageTemplate[]>('/automations/templates'),
+        () => localApi.automations.templates.list(),
+      ),
+      create: (data: MessageTemplateInput) => withFallback(
+        () => request<MessageTemplate>('/automations/templates', { method: 'POST', body: JSON.stringify(data) }),
+        () => localApi.automations.templates.create(data),
+      ),
+      update: (id: number, data: Partial<MessageTemplateInput>) => withFallback(
+        () => request<MessageTemplate>(`/automations/templates/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+        () => localApi.automations.templates.update(id, data),
+      ),
+      delete: (id: number) => withFallback(
+        () => request<void>(`/automations/templates/${id}`, { method: 'DELETE' }),
+        () => localApi.automations.templates.delete(id),
+      ),
+    },
+    logs: {
+      list: () => withFallback(
+        () => request<BotLog[]>('/automations/logs'),
+        () => localApi.automations.logs.list(),
+      ),
+    },
+  },
 }
 
 export interface DashboardData {
@@ -433,4 +486,59 @@ export interface CrmSyncResult {
   linked_leads: number
   created_leads: number
   message: string
+}
+
+export interface BotTrigger {
+  id?: number
+  bot_id?: number
+  trigger_type: string
+  keyword?: string
+  sort_order?: number
+}
+
+export interface BotAction {
+  id?: number
+  bot_id?: number
+  trigger_id?: number | null
+  action_type: string
+  config: string
+  sort_order?: number
+}
+
+export interface ChatBot {
+  id: number
+  name: string
+  description?: string
+  channels: string
+  is_active: boolean
+  welcome_message?: string
+  fallback_message?: string
+  priority: number
+  created_at: string
+  updated_at: string
+  triggers: BotTrigger[]
+  actions: BotAction[]
+}
+
+export type ChatBotInput = Omit<ChatBot, 'id' | 'created_at' | 'updated_at'>
+
+export interface MessageTemplate {
+  id: number
+  title: string
+  body: string
+  channel?: string
+  shortcut?: string
+  created_at: string
+}
+
+export type MessageTemplateInput = Omit<MessageTemplate, 'id' | 'created_at'>
+
+export interface BotLog {
+  id: number
+  bot_id?: number
+  conversation_id?: number
+  trigger_type?: string
+  action_type?: string
+  detail?: string
+  created_at: string
 }

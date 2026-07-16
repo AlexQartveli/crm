@@ -15,6 +15,7 @@ import {
   Settings,
   MessageCircle,
   Plug,
+  Bot,
 } from 'lucide-react'
 import { useI18n } from '../i18n/I18nContext'
 import HeaderControls from './HeaderControls'
@@ -32,6 +33,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
     { to: '/warehouse', icon: Warehouse, label: t.nav.warehouse },
     { to: '/movements', icon: ArrowLeftRight, label: t.nav.movements },
     { to: '/inbox', icon: MessageCircle, label: t.nav.inbox },
+    { to: '/bots', icon: Bot, label: t.nav.bots },
     { to: '/integrations', icon: Plug, label: t.nav.integrations },
     { to: '/accounting', icon: Calculator, label: t.nav.accounting },
     { to: '/accounting/settings', icon: Settings, label: t.nav.rsge },
@@ -40,8 +42,10 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <>
       <div className="p-5 border-b border-kinetix-700">
-        <h1 className="text-xl font-bold tracking-tight">Kinetix</h1>
-        <p className="text-kinetix-300 text-xs mt-1">{t.app.tagline}</p>
+        <a href="https://kinetiks.online/" target="_blank" rel="noopener" className="block hover:opacity-90 transition-opacity">
+          <h1 className="text-xl font-bold tracking-tight">KINETIKS</h1>
+          <p className="text-kinetix-300 text-xs mt-1">{t.app.tagline}</p>
+        </a>
         <div className="hidden md:block">
           <HeaderControls variant="sidebar" />
         </div>
@@ -104,7 +108,7 @@ export default function Layout() {
             >
               <Menu size={22} />
             </button>
-            <span className="font-bold truncate text-app-text">Kinetix</span>
+            <a href="https://kinetiks.online/" target="_blank" rel="noopener" className="font-bold truncate text-app-text hover:text-kinetix-600">KINETIKS</a>
           </div>
           <HeaderControls variant="mobile" />
         </header>

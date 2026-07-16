@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { MessageCircle, Phone, Send, Plug, UserPlus, Link2, Building2, Briefcase } from 'lucide-react'
-import { api, Contact, Conversation, Lead, Message } from '../api/client'
+import { MessageCircle, Phone, Send, Plug, UserPlus, Link2, Building2, Briefcase, FileText } from 'lucide-react'
+import { api, Contact, Conversation, Lead, Message, MessageTemplate } from '../api/client'
 import Modal from '../components/Modal'
 import { useI18n } from '../i18n/I18nContext'
 import { formatDate } from '../utils'
@@ -32,6 +32,7 @@ export default function Inbox() {
   const [linkContactId, setLinkContactId] = useState(0)
   const [linkLeadId, setLinkLeadId] = useState(0)
   const [crmMessage, setCrmMessage] = useState('')
+  const [templates, setTemplates] = useState<MessageTemplate[]>([])
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const selected = conversations.find((c) => c.id === selectedId) || null
@@ -52,6 +53,7 @@ export default function Inbox() {
   useEffect(() => {
     loadConversations()
     loadCalls()
+    api.automations.templates.list().then(setTemplates).catch(console.error)
     const interval = setInterval(() => {
       loadConversations()
       loadCalls()
@@ -242,7 +244,25 @@ export default function Inbox() {
                   ))}
                   <div ref={messagesEndRef} />
                 </div>
-                <form onSubmit={handleSend} className="p-4 border-t border-app-border flex gap-2">
+                <form onSubmit={handleSend} className="p-4 border-t border-app-border space-y-2">
+                  {templates.length > 0 && (
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <FileText size={14} className="text-app-text-muted shrink-0" />
+                      <span className="text-xs text-app-text-muted">{t.inbox.quickTemplates}:</span>
+                      {templates.map((tpl) => (
+                        <button
+                          key={tpl.id}
+                          type="button"
+                          className="text-xs px-2 py-1 rounded-full bg-app-surface border border-app-border hover:border-kinetix-500 hover:text-kinetix-600 transition-colors"
+                          title={tpl.body}
+                          onClick={() => setReply(tpl.body)}
+                        >
+                          {tpl.shortcut || tpl.title}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  <div className="flex gap-2">
                   <input
                     className="input flex-1"
                     value={reply}
@@ -252,6 +272,7 @@ export default function Inbox() {
                   <button type="submit" className="btn-primary flex items-center gap-2" disabled={!reply.trim()}>
                     <Send size={18} />
                   </button>
+                  </div>
                 </form>
               </>
             ) : (

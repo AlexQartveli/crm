@@ -10,8 +10,9 @@ from app.database import Base, SessionLocal, engine, migrate_schema
 from app.models.crm import Company, Contact, Deal, Lead
 from app.models.messaging import Conversation
 from app.models.warehouse import Product, Stock, Warehouse
-from app.routers import accounting, crm, messaging, warehouse
+from app.routers import accounting, automations, crm, messaging, warehouse
 from app.seed import seed_database
+from app.seed_bots import seed_bots
 from app.seed_messaging import seed_messaging
 
 Base.metadata.create_all(bind=engine)
@@ -35,6 +36,7 @@ app.include_router(crm.router, prefix="/api")
 app.include_router(warehouse.router, prefix="/api")
 app.include_router(accounting.router, prefix="/api")
 app.include_router(messaging.router, prefix="/api")
+app.include_router(automations.router, prefix="/api")
 
 
 @app.on_event("startup")
@@ -43,6 +45,7 @@ def on_startup():
     try:
         seed_database(db)
         seed_messaging(db)
+        seed_bots(db)
     finally:
         db.close()
 

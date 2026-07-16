@@ -12,6 +12,7 @@ import Accounting from './pages/Accounting'
 import TaxSettings from './pages/TaxSettings'
 import Inbox from './pages/Inbox'
 import Integrations from './pages/Integrations'
+import Bots from './pages/Bots'
 
 export default function App() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
         <Route path="warehouse" element={<WarehousePage />} />
         <Route path="movements" element={<Movements />} />
         <Route path="inbox" element={<Inbox />} />
+        <Route path="bots" element={<Bots />} />
         <Route path="integrations" element={<Integrations />} />
         <Route path="accounting" element={<Accounting />} />
         <Route path="accounting/settings" element={<TaxSettings />} />

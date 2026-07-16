@@ -1,3 +1,4 @@
+from app.models.automation import BotAction, BotLog, BotTrigger, ChatBot, MessageTemplate
 from app.models.crm import Company, Contact, Deal, DealProduct, Lead
 from app.models.messaging import CallLog, Conversation, Message, MessagingSettings
 from app.models.warehouse import Product, Stock, StockMovement, Warehouse
@@ -12,6 +13,11 @@ __all__ = [
     "Conversation",
     "Message",
     "MessagingSettings",
+    "ChatBot",
+    "BotTrigger",
+    "BotAction",
+    "MessageTemplate",
+    "BotLog",
     "Product",
     "Warehouse",
     "Stock",

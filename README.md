@@ -1,6 +1,49 @@
-# Kinetix — CRM + Склад
+# KINETIKS — CRM + Склад
 
-Система управления клиентами и складом. Включает CRM-модули (лиды, сделки, контакты, компании) и складской учёт (товары, остатки, движения).
+Готовый к запуску проект CRM и складского учёта для локальной работы и деплоя.
+
+## Быстрый запуск (Windows)
+
+1. Откройте папку `crm` на рабочем столе
+2. Дважды кликните **`start.bat`**
+3. Откроется:
+   - Frontend: http://localhost:5173
+   - Backend API: http://localhost:8000
+   - Swagger: http://localhost:8000/docs
+
+Нужно: **Node.js 20+** и **Python 3.12**.
+
+### Альтернатива через Docker
+
+```bat
+start-docker.bat
+```
+
+или:
+
+```bash
+docker compose up --build
+```
+
+## Структура проекта
+
+```
+crm/
+├── backend/      — FastAPI + SQLite
+├── frontend/     — React + TypeScript + Vite
+├── desktop/      — Windows-приложение (Electron)
+├── scripts/      — сборка и локальный запуск
+├── start.bat     — запуск всего проекта
+└── start-docker.bat
+```
+
+## Сайт компании
+
+https://kinetiks.online/
+
+## Онлайн-пробник
+
+https://alexqartveli.github.io/crm/
 
 ## Возможности
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Link2, MessageCircle, Send, Shield, RefreshCw } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Link2, MessageCircle, Send, Shield, RefreshCw, Bot } from 'lucide-react'
 import { api, MessagingSettings } from '../api/client'
 import Page, { Loading } from '../components/Page'
 import { useI18n } from '../i18n/I18nContext'
@@ -231,6 +232,17 @@ export default function Integrations() {
           <button type="button" className="btn-primary" disabled={syncingCrm} onClick={handleSyncCrm}>
             {syncingCrm ? t.integrations.syncingCrm : t.integrations.syncCrm}
           </button>
+        </div>
+
+        <div className="card p-6">
+          <div className="flex items-center gap-3 mb-2">
+            <Bot className="text-kinetix-600" size={22} />
+            <h2 className="text-lg font-semibold">{t.nav.bots}</h2>
+          </div>
+          <p className="text-sm text-app-text-muted mb-4">{t.integrations.f5}</p>
+          <Link to="/bots" className="btn-primary inline-flex items-center gap-2">
+            {t.integrations.openBots}
+          </Link>
         </div>
 
         <div className="card p-6">

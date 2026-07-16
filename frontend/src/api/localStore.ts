@@ -1,5 +1,8 @@
 import type {
+  BotLog,
   CallLog,
+  ChatBot,
+  ChatBotInput,
   Company,
   Contact,
   Conversation,
@@ -8,6 +11,8 @@ import type {
   DealProduct,
   Lead,
   Message,
+  MessageTemplate,
+  MessageTemplateInput,
   MessagingSettings,
   Product,
   RsgeAuthResult,
@@ -37,6 +42,9 @@ interface Store {
   messages: Message[]
   callLogs: CallLog[]
   messagingSettings: MessagingSettings | null
+  chatBots: ChatBot[]
+  messageTemplates: MessageTemplate[]
+  botLogs: BotLog[]
   nextId: number
 }
 
@@ -148,6 +156,33 @@ function seed(): Store {
       telegram_connected: false,
       telegram_configured: false,
     },
+    chatBots: [
+      {
+        id: 1, name: 'Приветствие', description: 'Автоответ на первое сообщение',
+        channels: 'all', is_active: true, priority: 10,
+        welcome_message: 'Здравствуйте! Спасибо за обращение в Kinetix.',
+        created_at: t, updated_at: t,
+        triggers: [{ id: 1, bot_id: 1, trigger_type: 'first_message', sort_order: 0 }],
+        actions: [
+          { id: 1, bot_id: 1, action_type: 'send_message', config: '{"text":"Здравствуйте! Спасибо за обращение в Kinetix."}', sort_order: 0 },
+          { id: 2, bot_id: 1, action_type: 'create_lead', config: '{"title":"Входящий чат"}', sort_order: 1 },
+        ],
+      },
+      {
+        id: 2, name: 'Запрос цены', description: 'Ответ на слово «цена»',
+        channels: 'all', is_active: true, priority: 5,
+        created_at: t, updated_at: t,
+        triggers: [{ id: 2, bot_id: 2, trigger_type: 'keyword', keyword: 'цена', sort_order: 0 }],
+        actions: [
+          { id: 3, bot_id: 2, action_type: 'send_message', config: '{"text":"Отправим прайс в течение 15 минут."}', sort_order: 0 },
+        ],
+      },
+    ],
+    messageTemplates: [
+      { id: 1, title: 'Приветствие', body: 'Здравствуйте! Чем могу помочь?', shortcut: '/hi', created_at: t },
+      { id: 2, title: 'Прайс', body: 'Отправляю актуальный прайс-лист.', shortcut: '/price', created_at: t },
+    ],
+    botLogs: [],
   }
 }
 
@@ -182,6 +217,9 @@ function load(): Store {
       messages: parsed.messages ?? [],
       callLogs: parsed.callLogs ?? [],
       messagingSettings: parsed.messagingSettings ?? null,
+      chatBots: parsed.chatBots ?? [],
+      messageTemplates: parsed.messageTemplates ?? [],
+      botLogs: parsed.botLogs ?? [],
       nextId: parsed.nextId ?? 100,
     } as Store
   } catch {
@@ -825,6 +863,72 @@ export const localApi = {
         created_leads: s.leads.filter((l) => messengerSources.includes(l.source || '')).length,
         message: `Синхронизировано: ${s.conversations.length} диалогов`,
       }
+    },
+  },
+
+  automations: {
+    bots: {
+      list: () => load().chatBots,
+      get: (id: number) => {
+        const bot = load().chatBots.find((b) => b.id === id)
+        if (!bot) throw new Error('Бот не найден')
+        return bot
+      },
+      create: (data: ChatBotInput) => {
+        const s = load()
+        const bot: ChatBot = { ...data, id: nextId(s), created_at: now(), updated_at: now() }
+        s.chatBots.unshift(bot)
+        save(s)
+        return bot
+      },
+      update: (id: number, data: Partial<ChatBotInput>) => {
+        const s = load()
+        const i = s.chatBots.findIndex((b) => b.id === id)
+        if (i < 0) throw new Error('Бот не найден')
+        s.chatBots[i] = { ...s.chatBots[i], ...data, updated_at: now() }
+        save(s)
+        return s.chatBots[i]
+      },
+      delete: (id: number) => {
+        const s = load()
+        s.chatBots = s.chatBots.filter((b) => b.id !== id)
+        save(s)
+      },
+      toggle: (id: number) => {
+        const s = load()
+        const bot = s.chatBots.find((b) => b.id === id)
+        if (!bot) throw new Error('Бот не найден')
+        bot.is_active = !bot.is_active
+        bot.updated_at = now()
+        save(s)
+        return bot
+      },
+    },
+    templates: {
+      list: () => load().messageTemplates,
+      create: (data: MessageTemplateInput) => {
+        const s = load()
+        const tpl: MessageTemplate = { ...data, id: nextId(s), created_at: now() }
+        s.messageTemplates.unshift(tpl)
+        save(s)
+        return tpl
+      },
+      update: (id: number, data: Partial<MessageTemplateInput>) => {
+        const s = load()
+        const i = s.messageTemplates.findIndex((t) => t.id === id)
+        if (i < 0) throw new Error('Шаблон не найден')
+        s.messageTemplates[i] = { ...s.messageTemplates[i], ...data }
+        save(s)
+        return s.messageTemplates[i]
+      },
+      delete: (id: number) => {
+        const s = load()
+        s.messageTemplates = s.messageTemplates.filter((t) => t.id !== id)
+        save(s)
+      },
+    },
+    logs: {
+      list: () => load().botLogs.sort((a, b) => b.created_at.localeCompare(a.created_at)),
     },
   },
 }

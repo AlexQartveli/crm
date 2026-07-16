@@ -192,12 +192,17 @@ def _store_call(db: Session, event: dict) -> CallLog:
 
 
 def _process_events(db: Session, events: list[dict]) -> dict:
+    from app.services.bot_engine import process_inbound_message
+
     stored_messages = 0
     stored_calls = 0
+    bot_queue: list[tuple[int, str]] = []
     for event in events:
         if event["kind"] == "message":
-            if _store_inbound_message(db, event):
+            msg = _store_inbound_message(db, event)
+            if msg:
                 stored_messages += 1
+                bot_queue.append((msg.conversation_id, event.get("body", "")))
         elif event["kind"] == "call":
             _store_call(db, event)
             stored_calls += 1
@@ -208,6 +213,11 @@ def _process_events(db: Session, events: list[dict]) -> dict:
                 if msg:
                     msg.status = event.get("status", msg.status)
     db.commit()
+    for conv_id, body in bot_queue:
+        try:
+            process_inbound_message(db, conv_id, body)
+        except Exception:
+            pass
     return {"stored_messages": stored_messages, "stored_calls": stored_calls}
 
 
