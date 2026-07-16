@@ -10,10 +10,12 @@ from app.database import Base, SessionLocal, engine, migrate_schema
 from app.models.crm import Company, Contact, Deal, Lead
 from app.models.messaging import Conversation
 from app.models.warehouse import Product, Stock, Warehouse
-from app.routers import accounting, automations, crm, messaging, warehouse
+from app.routers import accounting, auth, automations, crm, messaging, warehouse
 from app.seed import seed_database
 from app.seed_bots import seed_bots
 from app.seed_messaging import seed_messaging
+from app.seed_users import seed_users
+from app.middleware.auth import AuthMiddleware
 
 Base.metadata.create_all(bind=engine)
 migrate_schema()
@@ -31,7 +33,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(AuthMiddleware)
 
+app.include_router(auth.router, prefix="/api")
 app.include_router(crm.router, prefix="/api")
 app.include_router(warehouse.router, prefix="/api")
 app.include_router(accounting.router, prefix="/api")
@@ -44,6 +48,7 @@ def on_startup():
     db = SessionLocal()
     try:
         seed_database(db)
+        seed_users(db)
         seed_messaging(db)
         seed_bots(db)
     finally:

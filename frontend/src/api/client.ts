@@ -2,14 +2,40 @@ import { localApi } from './localStore'
 
 const API_BASE = import.meta.env.VITE_API_URL || '/api'
 const USE_LOCAL = import.meta.env.VITE_USE_LOCAL_API === 'true'
+export const AUTH_TOKEN_KEY = 'kinetix_token'
 
 let useLocal = USE_LOCAL
+
+export function getAuthToken(): string | null {
+  return localStorage.getItem(AUTH_TOKEN_KEY)
+}
+
+export function setAuthToken(token: string) {
+  localStorage.setItem(AUTH_TOKEN_KEY, token)
+}
+
+export function clearAuthToken() {
+  localStorage.removeItem(AUTH_TOKEN_KEY)
+}
+
+class ApiError extends Error {
+  status: number
+  constructor(message: string, status: number) {
+    super(message)
+    this.status = status
+  }
+}
 
 const REMOTE_TIMEOUT_MS = 20000
 const REMOTE_RETRIES = 3
 
 async function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+function authHeaders(): Record<string, string> {
+  const token = getAuthToken()
+  return token ? { Authorization: `Bearer ${token}` } : {}
 }
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
@@ -21,18 +47,27 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
     const timeout = setTimeout(() => controller.abort(), timeoutMs)
     try {
       const res = await fetch(`${API_BASE}${url}`, {
-        headers: { 'Content-Type': 'application/json', ...options?.headers },
+        headers: { 'Content-Type': 'application/json', ...authHeaders(), ...options?.headers },
         signal: controller.signal,
         ...options,
       })
+      if (res.status === 401) {
+        clearAuthToken()
+        if (!window.location.hash.includes('/login')) {
+          window.location.hash = '#/login'
+        }
+        throw new ApiError('Unauthorized', 401)
+      }
       if (!res.ok) {
         const err = await res.json().catch(() => ({ detail: res.statusText }))
-        throw new Error(err.detail || 'Ошибка запроса')
+        const message = err.detail || 'Ошибка запроса'
+        throw new ApiError(typeof message === 'string' ? message : 'Ошибка запроса', res.status)
       }
       if (res.status === 204) return undefined as T
       return res.json()
     } catch (err) {
       lastError = err
+      if (err instanceof ApiError && (err.status === 401 || err.status === 403)) throw err
       if (attempt < attempts - 1) await sleep(2000)
     } finally {
       clearTimeout(timeout)
@@ -42,16 +77,32 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
 }
 
 async function withFallback<T>(remote: () => Promise<T>, local: () => T): Promise<T> {
+  if (getAuthToken()) return remote()
   if (useLocal) return local()
   try {
     return await remote()
-  } catch {
+  } catch (err) {
+    if (err instanceof ApiError && (err.status === 401 || err.status === 403)) throw err
     useLocal = true
     return local()
   }
 }
 
 export const api = {
+  auth: {
+    login: (username: string, password: string) =>
+      request<TokenResponse>('/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) }),
+    me: () => request<AuthUser>('/auth/me'),
+    logout: () => request<{ ok: boolean }>('/auth/logout', { method: 'POST' }),
+    users: {
+      list: () => request<UserRecord[]>('/auth/users'),
+      create: (data: UserCreateInput) => request<UserRecord>('/auth/users', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: number, data: Partial<UserCreateInput & { is_active?: boolean }>) =>
+        request<UserRecord>(`/auth/users/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: number) => request<void>(`/auth/users/${id}`, { method: 'DELETE' }),
+    },
+  },
+
   dashboard: () => withFallback(() => request<DashboardData>('/dashboard'), () => localApi.dashboard()),
 
   leads: {
@@ -541,4 +592,39 @@ export interface BotLog {
   action_type?: string
   detail?: string
   created_at: string
+}
+
+export interface AuthUser {
+  id: number
+  username: string
+  email?: string
+  full_name: string
+  role: string
+  is_active: boolean
+  permissions: string[]
+  created_at?: string
+}
+
+export interface TokenResponse {
+  access_token: string
+  token_type: string
+  user: AuthUser
+}
+
+export interface UserRecord {
+  id: number
+  username: string
+  email?: string
+  full_name: string
+  role: string
+  is_active: boolean
+  created_at?: string
+}
+
+export interface UserCreateInput {
+  username: string
+  password: string
+  full_name: string
+  email?: string
+  role: string
 }

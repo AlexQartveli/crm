@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Bot, Plus, Trash2, Power, FileText, History } from 'lucide-react'
 import { api, BotAction, BotTrigger, ChatBot, ChatBotInput, MessageTemplate } from '../api/client'
+import { useAuth } from '../auth/AuthContext'
+import { PERM } from '../auth/permissions'
 import Modal from '../components/Modal'
 import Page, { Loading } from '../components/Page'
 import { useI18n } from '../i18n/I18nContext'
@@ -32,6 +34,8 @@ function parseConfig(config: string): Record<string, string> {
 
 export default function Bots() {
   const { t } = useI18n()
+  const { can } = useAuth()
+  const canManage = can(PERM.automationsManage)
   const [tab, setTab] = useState<'bots' | 'templates' | 'logs'>('bots')
   const [loading, setLoading] = useState(true)
   const [bots, setBots] = useState<ChatBot[]>([])
@@ -151,11 +155,13 @@ export default function Bots() {
 
       {tab === 'bots' && (
         <>
+          {canManage && (
           <div className="flex justify-end mb-4">
             <button className="btn-primary flex items-center gap-2" onClick={openCreate}>
               <Plus size={18} /> {t.bots.add}
             </button>
           </div>
+          )}
           <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
             {bots.map((bot) => (
               <div key={bot.id} className="card p-5">
@@ -176,6 +182,8 @@ export default function Bots() {
                   <p>{t.bots.triggers}: {bot.triggers.length} · {t.bots.actions}: {bot.actions.length}</p>
                 </div>
                 <div className="flex gap-2 mt-4">
+                  {canManage && (
+                  <>
                   <button className="btn-secondary text-sm flex-1" onClick={() => openEdit(bot)}>{t.common.edit}</button>
                   <button className="btn-secondary text-sm" onClick={() => handleToggle(bot.id)} title={t.bots.toggle}>
                     <Power size={16} />
@@ -183,6 +191,8 @@ export default function Bots() {
                   <button className="btn-secondary text-sm text-red-500" onClick={() => handleDelete(bot.id)}>
                     <Trash2 size={16} />
                   </button>
+                  </>
+                  )}
                 </div>
               </div>
             ))}
@@ -193,11 +203,13 @@ export default function Bots() {
 
       {tab === 'templates' && (
         <>
+          {canManage && (
           <div className="flex justify-end mb-4">
             <button className="btn-primary flex items-center gap-2" onClick={() => setTplModal(true)}>
               <Plus size={18} /> {t.bots.addTemplate}
             </button>
           </div>
+          )}
           <div className="card overflow-hidden">
             <table className="w-full text-sm">
               <thead>
@@ -215,9 +227,11 @@ export default function Bots() {
                     <td className="p-4">{tpl.shortcut || t.common.dash}</td>
                     <td className="p-4 text-app-text-muted max-w-md truncate">{tpl.body}</td>
                     <td className="p-4">
+                      {canManage && (
                       <button className="text-red-400" onClick={async () => { await api.automations.templates.delete(tpl.id); load() }}>
                         <Trash2 size={16} />
                       </button>
+                      )}
                     </td>
                   </tr>
                 ))}

@@ -4,10 +4,12 @@ import { useI18n } from '../i18n/I18nContext'
 interface CardActionsProps {
   onEdit: () => void
   onDelete: () => void
+  canManage?: boolean
 }
 
-export default function CardActions({ onEdit, onDelete }: CardActionsProps) {
+export default function CardActions({ onEdit, onDelete, canManage = true }: CardActionsProps) {
   const { t } = useI18n()
+  if (!canManage) return null
   return (
     <div className="flex gap-2 mt-3 pt-3 border-t border-app-border">
       <button
@@ -28,8 +30,9 @@ export default function CardActions({ onEdit, onDelete }: CardActionsProps) {
   )
 }
 
-export function RowActions({ onEdit, onDelete }: CardActionsProps) {
+export function RowActions({ onEdit, onDelete, canManage = true }: CardActionsProps) {
   const { t } = useI18n()
+  if (!canManage) return null
   return (
     <div className="flex gap-1">
       <button onClick={onEdit} className="p-1.5 rounded action-edit-icon" title={t.common.edit}>

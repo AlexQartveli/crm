@@ -1,4 +1,5 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
+import AuthGuard from './components/AuthGuard'
 import Layout from './components/Layout'
 import Dashboard from './pages/Dashboard'
 import Leads from './pages/Leads'
@@ -13,25 +14,32 @@ import TaxSettings from './pages/TaxSettings'
 import Inbox from './pages/Inbox'
 import Integrations from './pages/Integrations'
 import Bots from './pages/Bots'
+import Users from './pages/Users'
+import Login from './pages/Login'
 
 export default function App() {
   return (
     <Routes>
-      <Route element={<Layout />}>
-        <Route index element={<Dashboard />} />
-        <Route path="leads" element={<Leads />} />
-        <Route path="deals" element={<Deals />} />
-        <Route path="contacts" element={<Contacts />} />
-        <Route path="companies" element={<Companies />} />
-        <Route path="products" element={<Products />} />
-        <Route path="warehouse" element={<WarehousePage />} />
-        <Route path="movements" element={<Movements />} />
-        <Route path="inbox" element={<Inbox />} />
-        <Route path="bots" element={<Bots />} />
-        <Route path="integrations" element={<Integrations />} />
-        <Route path="accounting" element={<Accounting />} />
-        <Route path="accounting/settings" element={<TaxSettings />} />
+      <Route path="/login" element={<Login />} />
+      <Route element={<AuthGuard />}>
+        <Route element={<Layout />}>
+          <Route index element={<Dashboard />} />
+          <Route path="leads" element={<Leads />} />
+          <Route path="deals" element={<Deals />} />
+          <Route path="contacts" element={<Contacts />} />
+          <Route path="companies" element={<Companies />} />
+          <Route path="products" element={<Products />} />
+          <Route path="warehouse" element={<WarehousePage />} />
+          <Route path="movements" element={<Movements />} />
+          <Route path="inbox" element={<Inbox />} />
+          <Route path="bots" element={<Bots />} />
+          <Route path="integrations" element={<Integrations />} />
+          <Route path="accounting" element={<Accounting />} />
+          <Route path="accounting/settings" element={<TaxSettings />} />
+          <Route path="users" element={<Users />} />
+        </Route>
       </Route>
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
 }

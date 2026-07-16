@@ -2,12 +2,16 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus, Trash2, MessageCircle } from 'lucide-react'
 import { api, Lead } from '../api/client'
+import { useAuth } from '../auth/AuthContext'
+import { PERM } from '../auth/permissions'
 import Modal from '../components/Modal'
 import { useI18n } from '../i18n/I18nContext'
 import { useStatuses, formatDate, formatMoney } from '../utils'
 
 export default function Leads() {
   const { t } = useI18n()
+  const { can } = useAuth()
+  const canManage = can(PERM.leadsManage)
   const { leadStatuses } = useStatuses()
   const [leads, setLeads] = useState<Lead[]>([])
   const [modalOpen, setModalOpen] = useState(false)
@@ -51,9 +55,11 @@ export default function Leads() {
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="page-title">{t.leads.title}</h1>
+        {canManage && (
         <button className="btn-primary flex items-center gap-2" onClick={() => setModalOpen(true)}>
           <Plus size={18} /> {t.leads.add}
         </button>
+        )}
       </div>
 
       <div className="card overflow-hidden">
@@ -79,6 +85,7 @@ export default function Leads() {
                 <td className="p-4">{lead.phone || t.common.dash}</td>
                 <td className="p-4">{lead.source || t.common.dash}</td>
                 <td className="p-4">
+                  {canManage ? (
                   <select
                     value={lead.status}
                     onChange={(e) => handleStatusChange(lead.id, e.target.value)}
@@ -88,6 +95,11 @@ export default function Leads() {
                       <option key={k} value={k}>{v.label}</option>
                     ))}
                   </select>
+                  ) : (
+                    <span className={`text-xs font-medium px-2 py-1 rounded-full ${leadStatuses[lead.status]?.color || ''}`}>
+                      {leadStatuses[lead.status]?.label || lead.status}
+                    </span>
+                  )}
                 </td>
                 <td className="p-4 text-right">{formatMoney(lead.amount)}</td>
                 <td className="p-4 text-app-text-muted">{formatDate(lead.created_at)}</td>
@@ -100,9 +112,11 @@ export default function Leads() {
                   ) : t.common.dash}
                 </td>
                 <td className="p-4">
+                  {canManage && (
                   <button onClick={() => handleDelete(lead.id)} className="text-red-400 hover:text-red-500 dark:text-red-400 dark:hover:text-red-300">
                     <Trash2 size={16} />
                   </button>
+                  )}
                 </td>
               </tr>
             ))}

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Plus } from 'lucide-react'
 import { api, Deal } from '../api/client'
+import { useAuth } from '../auth/AuthContext'
+import { PERM } from '../auth/permissions'
 import Modal from '../components/Modal'
 import CardActions from '../components/CardActions'
 import Page, { Loading } from '../components/Page'
@@ -12,6 +14,8 @@ const emptyForm = { title: '', amount: 0, stage: 'new' }
 
 export default function Deals() {
   const { t } = useI18n()
+  const { can } = useAuth()
+  const canManage = can(PERM.dealsManage)
   const { dealStages } = useStatuses()
   const [deals, setDeals] = useState<Deal[]>([])
   const [loading, setLoading] = useState(true)
@@ -56,7 +60,7 @@ export default function Deals() {
   return (
     <Page
       title={t.deals.title}
-      action={<button className="btn-primary flex items-center gap-2" onClick={openCreate}><Plus size={18} /> {t.deals.add}</button>}
+      action={canManage ? <button className="btn-primary flex items-center gap-2" onClick={openCreate}><Plus size={18} /> {t.deals.add}</button> : undefined}
     >
       <div className="md:hidden space-y-3">
         {deals.map((deal) => (
@@ -72,7 +76,7 @@ export default function Deals() {
             <select value={deal.stage} onChange={(e) => handleStageChange(deal.id, e.target.value)} className="mt-3 select-muted">
               {STAGE_ORDER.map((s) => <option key={s} value={s}>{dealStages[s]?.label}</option>)}
             </select>
-            <CardActions onEdit={() => openEdit(deal)} onDelete={() => handleDelete(deal.id)} />
+            <CardActions canManage={canManage} onEdit={() => openEdit(deal)} onDelete={() => handleDelete(deal.id)} />
           </div>
         ))}
       </div>
@@ -97,7 +101,7 @@ export default function Deals() {
                     <select value={deal.stage} onChange={(e) => handleStageChange(deal.id, e.target.value)} className="mt-2 select-muted text-xs py-1.5">
                       {STAGE_ORDER.map((s) => <option key={s} value={s}>{dealStages[s]?.label}</option>)}
                     </select>
-                    <CardActions onEdit={() => openEdit(deal)} onDelete={() => handleDelete(deal.id)} />
+                    <CardActions canManage={canManage} onEdit={() => openEdit(deal)} onDelete={() => handleDelete(deal.id)} />
                   </div>
                 ))}
               </div>
